@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "ZAnGian Console App": {
+      "commandName": "Project",
+      "commandLineArgs": "games\\dejavu.z3",
+      "workingDirectory": "C:/Users/angian/git-workspace/ZAnGian"
+    }
+  }
+}
