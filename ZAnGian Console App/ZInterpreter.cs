@@ -33,7 +33,7 @@ namespace ZAnGian
             memory.DumpMetadata();
             Console.WriteLine("");
 
-            //memory.ReadObjList();
+            memory.ReadObjList();
 
             //memory.WalkObjTree(1, (GameObject gameObj, int depth) =>
             //{

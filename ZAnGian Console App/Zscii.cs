@@ -25,13 +25,13 @@ namespace ZAnGian
         }
 
 
-        public static string DecodeText(byte[] data, MemWord start, out ushort nBytesRead, ushort nBytes=ushort.MaxValue)
+        public static string DecodeText(byte[] data, MemWord start, out ushort nBytesRead, ushort nBytesToRead=ushort.MaxValue)
         {
             StringBuilder sb = new();
             Alphabet currAlphabet = Alphabet.Lowercase;
 
             ushort i = start;
-            while (i < start + nBytes)
+            while (i < start + nBytesToRead)
             {
                 //Console.WriteLine($"decoding data 0x{data[i]:x2} 0x{data[i+1]:x2}");
                 byte ch1 = (byte)((data[i] & 0b01111100) >> 2);
@@ -60,7 +60,11 @@ namespace ZAnGian
                 }
 
                 if ((data[i] & 0x80) == 0x80)
+                {
+                    //topmost bit set == last data bytes
+                    i += 2;
                     break;
+                }
 
                 i += 2;
             }
@@ -73,7 +77,11 @@ namespace ZAnGian
 
         public static char ZChar2Zscii(byte zchar, Alphabet alphabet=Alphabet.Lowercase)
         {
-            Debug.Assert(zchar >= 0x06 && zchar <= 0x2f);
+            //Debug.Assert(zchar >= 0x06 && zchar <= 0x2f, $"Invalid zchar 0x{zchar:x2}");
+            //DEBUG
+            if ((zchar < 0x06) || (zchar > 0x2f))
+                return '?';
+            //
 
             return _alphabetChars[alphabet][zchar-0x06];
         }

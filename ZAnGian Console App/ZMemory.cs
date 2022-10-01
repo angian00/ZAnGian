@@ -1,4 +1,7 @@
 ﻿global using MemWord = System.UInt16;
+global using GameObjectId = System.Byte;
+global using GameVariableId = System.Byte;
+
 
 using System;
 using System.Diagnostics;
@@ -78,62 +81,57 @@ namespace ZAnGian
         }
 
 
-        public void WalkObjTree(ushort startObjId, GameObjDelegate objDelegate)
+        public void WalkObjTree(GameObjectId startObjId, GameObjDelegate objDelegate)
         {
             WalkObjNode(startObjId, 0, objDelegate);
         }
 
-        private void WalkObjNode(ushort objId, ushort currDepth, GameObjDelegate objDelegate)
+        private void WalkObjNode(GameObjectId objId, ushort currDepth, GameObjDelegate objDelegate)
         {
-            GameObject currObj = ReadGameObject(objId);
+            GameObject currObj = FindObject(objId);
             
             objDelegate(currObj, currDepth);
 
-            if (currObj.Child != 0x00)
-                WalkObjNode(currObj.Child, (ushort)(currDepth + 1), objDelegate);
+            if (currObj.ChildId != 0x00)
+                WalkObjNode(currObj.ChildId, (ushort)(currDepth + 1), objDelegate);
 
-            if (currObj.Sibling != 0x00)
-                WalkObjNode(currObj.Sibling, currDepth, objDelegate);
+            if (currObj.SiblingId != 0x00)
+                WalkObjNode(currObj.SiblingId, currDepth, objDelegate);
         }
 
 
         public void ReadObjList()
         {
-            ushort iObj = 1;
+            GameObjectId iObj = 1;
             bool isLast = false;
 
             while (!isLast)
             {
                 Debug.Assert(iObj <= MAX_N_OBJS);
 
-                GameObject obj = ReadGameObject(iObj);
+                GameObject obj = FindObject(iObj);
                 obj.Dump();
 
                 iObj++;
 
                 //DEBUG
-                if (iObj >= 40)
+                if (iObj >= 10)
                     break;
             }
         }
 
 
-        private GameObject ReadGameObject(ushort iObj)
+        public GameObject FindObject(GameObjectId iObj)
         {
+            if (iObj == 0x00)
+                return null;
+
             MemWord memPos = (MemWord)(ObjectTableLoc + 2 * GameObject.MAX_N_OBJ_PROPS + (iObj-1)*OBJ_ENTRY_SIZE);
-            //Console.WriteLine($"DEBUG: ReadGameObject[{memPos}]");
+            //Console.WriteLine($"DEBUG: FindObject[{memPos}]");
 
-            GameObject gameObj = new();
-
-            gameObj.Id = iObj;
-            //gameObj.IsLast = ; 
-            gameObj.Attributes = ReadNBytes(4, memPos);
-            gameObj.Parent     = ReadByte(memPos + 4);
-            gameObj.Sibling    = ReadByte(memPos + 5);
-            gameObj.Child      = ReadByte(memPos + 6);
-            MemWord propAddr   = ReadWord(memPos + 7);
+            GameObject gameObj = new GameObject(iObj, memPos, this);
             
-            ReadProperties(ref gameObj, propAddr);
+            //ReadProperties(ref gameObj, propAddr);
             
             return gameObj;
 
@@ -145,6 +143,7 @@ namespace ZAnGian
         }
 
 
+        /*
         private void ReadProperties(ref GameObject gameObj, MemWord propTableAddr)
         {
             //Console.WriteLine($"DEBUG: ReadProperties[{gameObj.Id}] [{propTableAddr}]");
@@ -172,11 +171,16 @@ namespace ZAnGian
                 memPos += (MemWord)(pSize + 1);
             }
         }
-
+        */
 
         public byte ReadByte(int offset)
         {
             return Data[offset];
+        }
+
+        public void WriteByte(int offset, byte val)
+        {
+            Data[offset] = val;
         }
 
         public MemWord ReadWord(int offset)
@@ -192,6 +196,8 @@ namespace ZAnGian
 
         public uint ReadNBytes(int nBytes, int offset)
         {
+            Debug.Assert(nBytes <= 4, "uint overflow");
+
             uint res = 0;
 
             for (int i=0; i < nBytes; i++)
@@ -200,6 +206,17 @@ namespace ZAnGian
             }
 
             return res;
+        }
+
+        public void WriteNBytes(int nBytes, int offset, uint val)
+        {
+            Debug.Assert(nBytes <= 4, "uint overflow");
+
+            for (int i = 0; i < nBytes; i++)
+            {
+                Data[offset + nBytes - i - 1] = (byte) (val & 0xff);
+                val >>= 8;
+            }
         }
     }
 }

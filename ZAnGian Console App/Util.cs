@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
+
 
 namespace ZAnGian
 {
@@ -18,4 +16,26 @@ namespace ZAnGian
         }
     }
 
+
+    public class NumberUtils
+    {
+        // interpret a word 16-bit signed int, as per spec 2.2
+        public static Int16 toInt16(uint val)
+        {
+            if (val > Int16.MaxValue)
+                return (Int16)(val - 0x10000);
+
+            return (Int16)val;
+        }
+
+        public static MemWord fromInt16(Int16 val)
+        {
+            if (val < 0)
+                return (MemWord)(0x10000 + val);
+
+            return (MemWord)val;
+        }
+
+
+    }
 }

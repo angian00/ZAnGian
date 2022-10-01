@@ -5,17 +5,18 @@ using System.Reflection.Metadata;
 
 namespace ZAnGian
 {
-    public class ZScreen
+    public class ZStack
     {
-        public ZScreen()
+        public ZStack()
         {
-            Console.Clear();
+            
         }
 
 
-        public void Print(string msg)
+        public uint Pop()
         {
-            Console.WriteLine(msg);
+            //TODO
+            return 0;
         }
     }
 
