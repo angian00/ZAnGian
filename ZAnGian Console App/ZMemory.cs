@@ -1,5 +1,4 @@
-﻿global using MemWord = System.UInt16;
-global using GameObjectId = System.Byte;
+﻿global using GameObjectId = System.Byte;
 global using GameVariableId = System.Byte;
 
 
@@ -15,7 +14,7 @@ namespace ZAnGian
     {
         private static Logger _logger = Logger.GetInstance();
 
-        public const MemWord MAX_N_OBJS = 255;
+        public const int MAX_N_OBJS = 255;
         private const ushort OBJ_ENTRY_SIZE = 9;
 
 
@@ -29,9 +28,9 @@ namespace ZAnGian
         public  MemWord GlobalVarTableLoc;
         private MemWord BaseStaticMem;
         private MemWord AbbrTableLoc;
-        private int FileLen;
-        private int Checksum;
-        private int Revision;
+        private MemWord FileLen;
+        private MemWord Checksum;
+        private MemWord Revision;
         
         private MemWord[] ObjPropDefaults = new MemWord[GameObject.MAX_N_OBJ_PROPS];
 
@@ -66,14 +65,14 @@ namespace ZAnGian
             _logger.Info($"version: {ZVersion}");
             _logger.Info($"revision: {Revision}");
             _logger.Debug("");
-            _logger.Debug($"baseHighMem: {BaseHighMem} [0x{BaseHighMem:x}]");
-            _logger.Debug($"baseStaticMem: {BaseStaticMem} [0x{BaseStaticMem:x}]");
-            _logger.Debug($"startPC: {StartPC} [0x{StartPC:x}]");
+            _logger.Debug($"baseHighMem: {BaseHighMem.ToDecimalString()} [{BaseHighMem}]");
+            _logger.Debug($"baseStaticMem: {BaseStaticMem.ToDecimalString()} [{BaseStaticMem}]");
+            _logger.Debug($"startPC: {StartPC.ToDecimalString()} [{StartPC}]");
             _logger.Debug("");
-            _logger.Debug($"dictionaryLoc: {DictionaryLoc} [0x{DictionaryLoc:x}]");
-            _logger.Debug($"objTableLoc: {ObjectTableLoc}  [0x{ObjectTableLoc:x}]");
-            _logger.Debug($"globalVarTableLoc: {GlobalVarTableLoc} [0x{GlobalVarTableLoc:x}]");
-            _logger.Debug($"abbrTableLoc: {AbbrTableLoc} [0x{AbbrTableLoc:x}]");
+            _logger.Debug($"dictionaryLoc: {DictionaryLoc.ToDecimalString()} [{DictionaryLoc}]");
+            _logger.Debug($"objTableLoc: {ObjectTableLoc.ToDecimalString()}  [{ObjectTableLoc}]");
+            _logger.Debug($"globalVarTableLoc: {GlobalVarTableLoc.ToDecimalString()} [{GlobalVarTableLoc}]");
+            _logger.Debug($"abbrTableLoc: {AbbrTableLoc.ToDecimalString()} [{AbbrTableLoc}]");
             _logger.Debug("");
             _logger.Debug($"file length: {FileLen}");
             _logger.Debug($"checksum: {Checksum}");
@@ -173,50 +172,90 @@ namespace ZAnGian
         }
         */
 
-        public byte ReadByte(int offset)
+        public MemByte ReadByte(ushort targetAddr)
         {
-            return Data[offset];
+            return new MemByte(Data[targetAddr]);
         }
 
-        public void WriteByte(int offset, byte val)
+        public MemByte ReadByte(MemWord targetAddr)
         {
-            Data[offset] = val;
+            return new MemByte(Data[targetAddr.Value]);
         }
 
-        public MemWord ReadWord(int offset)
+        public void WriteByte(int targetAddr, byte value)
         {
-            return (MemWord)((Data[offset] << 8) + Data[offset + 1]);
+            Data[targetAddr] = value;
         }
 
-        public void WriteWord(int offset, MemWord data)
+        public void WriteByte(MemWord targetAddr, MemByte memByte)
         {
-            Data[offset]   = (byte)(data >> 8);
-            Data[offset+1] = (byte)(data & 0xff);
+            Data[targetAddr.Value] = memByte.Value;
         }
 
-        public uint ReadNBytes(int nBytes, int offset)
+        public void WriteByte(MemWord targetAddr, byte value)
+        {
+            Data[targetAddr.Value] = value;
+        }
+
+        public MemWord ReadWord(ushort targetAddr)
+        {
+            return new MemWord(Data[targetAddr], Data[targetAddr + 1]);
+        }
+
+        public MemWord ReadWord(MemWord targetAddr)
+        {
+            return ReadWord(targetAddr.Value);
+        }
+
+        public void WriteWord(ushort targetAddr, MemWord data)
+        {
+            Data[targetAddr] = data.HighByte;
+            Data[targetAddr + 1] = data.LowByte;
+        }
+
+        public void WriteWord(MemWord targetAddr, MemWord data)
+        {
+            WriteWord(targetAddr.Value, data);
+        }
+
+        public uint ReadNBytes(int nBytes, uint targetAddr)
         {
             Debug.Assert(nBytes <= 4, "uint overflow");
 
             uint res = 0;
 
-            for (int i=0; i < nBytes; i++)
+            for (int i = 0; i < nBytes; i++)
             {
-                res += (res << 8) + Data[offset+i];
+                res += (res << 8) + Data[targetAddr + i];
             }
 
             return res;
         }
 
-        public void WriteNBytes(int nBytes, int offset, uint val)
+        public uint ReadNBytes(int nBytes, MemWord targetAddr)
+        {
+            return ReadNBytes(nBytes, targetAddr.Value);
+        }
+
+        public void WriteNBytes(int nBytes, int targetAddr, uint val)
         {
             Debug.Assert(nBytes <= 4, "uint overflow");
 
             for (int i = 0; i < nBytes; i++)
             {
-                Data[offset + nBytes - i - 1] = (byte) (val & 0xff);
+                Data[targetAddr + nBytes - i - 1] = (byte) (val & 0xff);
                 val >>= 8;
             }
+        }
+
+        public uint ReadDWord(MemWord targetAddr)
+        {
+            return ReadNBytes(4, targetAddr.Value);
+        }
+
+        public void WriteDWord(MemWord targetAddr, uint val)
+        {
+            WriteNBytes(4, targetAddr.Value, val);
         }
     }
 }

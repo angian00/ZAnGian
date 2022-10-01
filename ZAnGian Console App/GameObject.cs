@@ -7,7 +7,7 @@ namespace ZAnGian
 {
     public class GameObject
     {
-        public const MemWord MAX_N_OBJ_PROPS = 31;
+        public const int MAX_N_OBJ_PROPS = 31;
 
         private static Logger _logger = Logger.GetInstance();
 
@@ -24,25 +24,25 @@ namespace ZAnGian
 
         public uint Attributes
         {
-            get => _memory.ReadNBytes(4, _attrAddr);
-            set => _memory.WriteNBytes(4, _attrAddr, value);
+            get => _memory.ReadDWord(_attrAddr);
+            set => _memory.WriteDWord(_attrAddr, value);
         }
 
         public GameObjectId ParentId
         {
-            get => _memory.ReadByte(_parentAddr);
+            get => _memory.ReadByte(_parentAddr).Value;
             set => _memory.WriteByte(_parentAddr, value);
         }
 
         public GameObjectId SiblingId
         {
-            get => _memory.ReadByte(_siblingAddr);
+            get => _memory.ReadByte(_siblingAddr).Value;
             set => _memory.WriteByte(_siblingAddr, value);
         }
 
         public GameObjectId ChildId
         {
-            get => _memory.ReadByte(_childAddr);
+            get => _memory.ReadByte(_childAddr).Value;
             set => _memory.WriteByte(_childAddr, value);
         }
 
@@ -51,7 +51,7 @@ namespace ZAnGian
             get
             {
                 MemWord snAddr = _memory.ReadWord(_propPAddr);
-                byte textLen = _memory.ReadByte(snAddr);
+                byte textLen = _memory.ReadByte(snAddr).Value;
                 string value = Zscii.DecodeText(_memory.Data, (MemWord)(snAddr + 1), out _, (ushort)(2 * textLen));
 
                 return value;

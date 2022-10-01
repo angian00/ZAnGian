@@ -13,10 +13,10 @@ namespace ZAnGian
         }
 
 
-        public uint Pop()
+        public MemWord Pop()
         {
             //TODO
-            return 0;
+            return null;
         }
     }
 

@@ -25,11 +25,12 @@ namespace ZAnGian
         }
 
 
-        public static string DecodeText(byte[] data, MemWord start, out ushort nBytesRead, ushort nBytesToRead=ushort.MaxValue)
+        public static string DecodeText(byte[] data, MemWord startAddr, out ushort nBytesRead, ushort nBytesToRead=ushort.MaxValue)
         {
             StringBuilder sb = new();
             Alphabet currAlphabet = Alphabet.Lowercase;
 
+            ushort start = startAddr.Value;
             ushort i = start;
             while (i < start + nBytesToRead)
             {
