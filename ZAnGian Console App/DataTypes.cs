@@ -6,6 +6,8 @@ using System.Security.Principal;
 namespace ZAnGian
 {
     public abstract class MemValue {
+        public virtual uint FullValue { get => uint.MaxValue; }
+        public virtual int SignedValue { get => int.MinValue; }
     }
 
 
@@ -13,6 +15,11 @@ namespace ZAnGian
     {
         private byte _value;
         public byte Value { get => _value; }
+        public override uint FullValue { get => _value; }
+        public override int SignedValue
+        {
+            get => _value; //CHECK
+        }
 
 
         public MemByte(byte val)
@@ -50,6 +57,10 @@ namespace ZAnGian
         {
             return (v1._value != v2);
         }
+        public static MemByte operator +(MemByte v1, MemByte v2)
+        {
+            return new MemByte(v1._value + v2._value);
+        }
         public static MemByte operator +(MemByte v1, int v2)
         {
             return new MemByte(v1._value + v2);
@@ -66,6 +77,10 @@ namespace ZAnGian
         {
             return new MemByte(v1._value - v2);
         }
+        public static MemByte operator *(MemByte v1, int v2)
+        {
+            return new MemByte(v1._value * v2);
+        }
         public static MemByte operator &(MemByte v, uint bitMask)
         {
             return new MemByte(v._value & bitMask);
@@ -81,10 +96,9 @@ namespace ZAnGian
     {
         private ushort _value;
         public ushort Value { get => _value; }
-        public int SignedValue { get =>
-                (_value > Int16.MaxValue)
-                    ? (Int16)(_value - 0x10000)
-                    : (Int16)_value;
+        public override uint FullValue { get => _value; }
+        public override int SignedValue { 
+            get => (_value > Int16.MaxValue) ? (Int16)(_value - 0x10000) : (Int16)_value;
         }
 
         public byte HighByte { get => (byte)(_value >> 8); }
@@ -143,6 +157,23 @@ namespace ZAnGian
             v._value += 1;
             return v;
         }
+        public static MemWord operator --(MemWord v)
+        {
+            v._value -= 1;
+            return v;
+        }
+        public static MemWord operator +(MemWord v1, MemWord v2)
+        {
+            return new MemWord(v1._value + v2._value);
+        }
+        public static MemWord operator +(MemWord v1, MemByte v2)
+        {
+            return new MemWord(v1._value + v2.Value);
+        }
+        public static MemWord operator +(MemByte v1, MemWord v2)
+        {
+            return new MemWord(v1.Value + v2._value);
+        }
         public static MemWord operator +(MemWord v1, int v2)
         {
             return new MemWord(v1._value + v2);
@@ -162,6 +193,14 @@ namespace ZAnGian
         public static MemWord operator *(MemWord v1, int v2)
         {
             return new MemWord(v1._value * v2);
+        }
+        public static MemWord operator ~(MemWord v)
+        {
+            return new MemWord((UInt16)(~v._value));
+        }
+        public static MemWord operator &(MemWord v1, MemWord v2)
+        {
+            return new MemWord(v1._value & v2._value);
         }
         public static MemWord operator &(MemWord v, uint bitMask)
         {

@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Emit;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ZAnGian
 {
@@ -9,6 +13,7 @@ namespace ZAnGian
     {
         private static Logger _logger = Logger.GetInstance();
 
+        private const int PACKED_ADDR_FACTOR = 2; //depends on game version
 
         private enum OpCodeForm
         {
@@ -186,16 +191,15 @@ namespace ZAnGian
                 switch (opcode)
                 {
                     case 0x00:
-                        if (operands[0] is MemWord packedAddr)
-                        {
-                            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
-                            _pc++;
-                            OpcodeCall(nOps, operands);
-                        }
-                        else
-                        {
-                            Debug.Assert(false, "Inconsistent operand type");
-                        }
+                        OpcodeCall(nOps, operands);
+                        break;
+
+                    case 0x05:
+                        OpcodePrintChar(nOps, operands);
+                        break;
+
+                    case 0x06:
+                        OpcodePrintNum(nOps, operands);
                         break;
 
                     default:
@@ -235,6 +239,14 @@ namespace ZAnGian
                     case 1:
                         switch (opcode)
                         {
+                            case 0x05:
+                                OpcodeInc(operands);
+                                break;
+
+                            case 0x06:
+                                OpcodeDec(operands);
+                                break;
+
                             case 0x07:
                                 OpcodePrintAddr(operands);
                                 break;
@@ -250,6 +262,10 @@ namespace ZAnGian
                                 OpcodePrintPAddr(operands);
                                 break;
 
+                            case 0x0F:
+                                OpcodeNOT(operands);
+                                break;
+                                
                             default:
                                 throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
                         }
@@ -278,9 +294,25 @@ namespace ZAnGian
                                 OpcodeJIn(operands);
                                 break;
 
+                            case 0x09:
+                                OpcodeAND(operands);
+                                break;
+
+
+                            case 0x0D:
+                                OpcodeStore(operands);
+                                break;
 
                             case 0x0E:
                                 OpcodeInsertObj(operands);
+                                break;
+
+                            case 0x0F:
+                                OpcodeLoadW(operands);
+                                break;
+
+                            case 0x10:
+                                OpcodeLoadB(operands);
                                 break;
 
 
@@ -318,50 +350,74 @@ namespace ZAnGian
 
         private void OpcodeCall(int nOps, MemValue[] operands)
         {
-            _logger.All($"call {FormatOperands(nOps, operands)}");
-
-            if (!(operands[0] is MemWord))
-                Debug.Assert(false, "Inconsistent operand type");
-
+            _logger.All($"CALL {FormatOperands(nOps, operands)}");
 
             MemWord packedAddr = (MemWord)operands[0];
             MemWord routineAddr = packedAddr * 2;
 
-            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
-            _pc++;
 
-
+            RoutineData newRoutine = new RoutineData();
             for (int i = 0; i < nOps - 1; i++)
             {
                 //TODO: push argument operands[i+1]
             }
 
-            //TODO: store return address somewhere
 
-            //jump to routine
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            newRoutine.ReturnVariableId = storeVar;
+            newRoutine.ReturnAddress = _pc;
+
+            //jump to routine instructions
             _pc = routineAddr;
 
             byte nLocalVars = _memory.ReadByte(_pc).Value;
             _pc++;
-            MemWord _localVarsAddr = _pc;
 
-            _pc += (2 * nLocalVars); //skip local vars
+            for (int i = 0; i < nLocalVars; i++)
+            {
+                newRoutine.AddLocalVariable(_memory.ReadWord(_pc));
+                _pc += 2;
+            }
+            
+            _stack.AddRoutine(newRoutine);
         }
 
+
+        private void OpcodePrintChar(int nOps, MemValue[] operands)
+        {
+            _logger.All($"PRINT_CHAR {FormatOperands(nOps, operands)}");
+
+            //Zscii.DecodeText();
+            byte zchar = (byte)operands[0].FullValue;
+            _screen.Print($"{Zscii.ZChar2Zscii(zchar)}");
+        }
+
+
+        private void OpcodePrintNum(int nOps, MemValue[] operands)
+        {
+            _logger.All($"PRINT_NUM {FormatOperands(nOps, operands)}");
+
+            int val = ((MemWord)operands[0]).SignedValue;
+
+            _screen.Print($"{val}");
+        }
 
         //-------------------------------------------------
         //--- 0OP -----------------------------------------
         //-------------------------------------------------
 
-        private void OpcodePop()
+            private void OpcodePop()
         {
-            _logger.All("pop");
+            _logger.All("POP");
             _stack.Pop();
         }
 
         private void OpcodePrint()
         {
-            _logger.All("print");
+            _logger.All("PRINT");
 
             ushort nBytesRead;
             string msg = Zscii.DecodeText(_memory.Data, _pc, out nBytesRead);
@@ -372,8 +428,8 @@ namespace ZAnGian
 
         private void OpcodeRTrue()
         {
-            _logger.All("rtrue");
-            MemWord returnAddress = (MemWord)_stack.Pop();
+            _logger.All("RTRUE");
+            //MemWord returnAddress = (MemWord)_stack.Pop(); //FIXME: use routinedata
         }
 
 
@@ -381,27 +437,53 @@ namespace ZAnGian
         //--- 1OP -----------------------------------------
         //-------------------------------------------------
 
+        private void OpcodeDec(MemValue[] operands)
+        {
+            _logger.All($"DEC {operands[0]}");
+
+            GameVariableId varId = ((MemByte)operands[0]).Value;
+
+            MemWord varValue = ReadVariable(varId);
+            varValue--;
+            WriteVariable(varId, varValue);
+        }
+
+        private void OpcodeInc(MemValue[] operands)
+        {
+            _logger.All($"INC {operands[0]}");
+
+            GameVariableId varId = ((MemByte)operands[0]).Value;
+
+            MemWord varValue = ReadVariable(varId);
+            varValue++;
+            WriteVariable(varId, varValue);
+        }
+
         private void OpcodeJump(MemValue[] operands)
         {
-            _logger.All($"jump {operands[0]}");
-
-            if (!(operands[0] is MemWord))
-                Debug.Assert(false, "Inconsistent operand type");
+            _logger.All($"JUMP {operands[0]}");
 
             MemWord targetOffset = (MemWord)operands[0];
-
-
             _pc += targetOffset.SignedValue - 2;
+        }
+
+
+        private void OpcodeNOT(MemValue[] operands)
+        {
+            _logger.All($"NOT {operands[0]}");
+
+            MemWord value = (MemWord)operands[0];
+
+            MemWord targetAddr = _memory.ReadWord(_pc);
+            _pc += 2;
+
+            _memory.WriteWord(targetAddr, ~value);
         }
 
 
         private void OpcodePrintAddr(MemValue[] operands)
         {
-            _logger.All($"print_addr {operands[0]}");
-
-            if (!(operands[0] is MemWord))
-                Debug.Assert(false, "Inconsistent operand type");
-            
+            _logger.All($"PRINT_ADDR {operands[0]}");
 
             MemWord targetAddr = (MemWord)operands[0];
             string msg = Zscii.DecodeText(_memory.Data, targetAddr, out _);
@@ -412,14 +494,10 @@ namespace ZAnGian
 
         private void OpcodePrintPAddr(MemValue[] operands)
         {
-            _logger.All($"print_paddr {operands[0]}");
+            _logger.All($"PRINT_PADDR {operands[0]}");
 
-            if (!(operands[0] is MemWord))
-                Debug.Assert(false, "Inconsistent operand type");
-
-            MemWord packedAddr = (MemWord)operands[0];
-            
-            MemWord targetAddr = packedAddr * 2;
+            MemWord packedAddr = (MemWord)operands[0] * PACKED_ADDR_FACTOR; 
+            MemWord targetAddr = packedAddr;
 
             string msg = Zscii.DecodeText(_memory.Data, targetAddr, out _);
             _screen.Print(msg);
@@ -429,17 +507,54 @@ namespace ZAnGian
         //-------------------------------------------------
         //--- 2OP -----------------------------------------
         //-------------------------------------------------
+        private void OpcodeAND(MemValue[] operands)
+        {
+            _logger.All($"AND {operands[0]} {operands[1]}");
+
+            MemWord a = (MemWord)operands[0];
+            MemWord b = (MemWord)operands[1];
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            WriteVariable(storeVar, a & b);
+        }
+
+        private void OpcodeLoadB(MemValue[] operands)
+        {
+            _logger.All($"LOADB {operands[0]} {operands[1]}");
+
+            uint arr = operands[0].FullValue;
+            uint index = operands[1].FullValue;
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            //MemWord val = _memory.ReadWord((ushort)(arr + index));
+            MemByte val = _memory.ReadByte((ushort)(arr + index));
+            WriteVariable(storeVar, new MemWord(val.Value));
+        }
+
+        private void OpcodeLoadW(MemValue[] operands)
+        {
+            _logger.All($"LOADW {operands[0]} {operands[1]}");
+
+            uint arr = operands[0].FullValue;
+            uint index = operands[1].FullValue;
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            MemWord val = _memory.ReadWord((ushort)(arr + index * 2));
+            WriteVariable(storeVar, val);
+        }
 
         private void OpcodeIncChk(MemValue[] operands)
         {
-            _logger.All($"inc_chk {operands[0]} {operands[1]}");
+            _logger.All($"INC_CHK {operands[0]} {operands[1]}");
             
-            if (!(operands[0] is MemByte) || !(operands[1] is MemWord))
-                Debug.Assert(false, "Inconsistent operand types");
-
             GameVariableId varId = ((MemByte)operands[0]).Value;
             MemWord cmpValue = (MemWord)operands[1];
-
 
             MemWord targetAddr = _memory.ReadWord(_pc);
             _pc += 2;
@@ -455,10 +570,7 @@ namespace ZAnGian
 
         private void OpcodeInsertObj(MemValue[] operands)
         {
-            _logger.All($"insert_obj {operands[0]} {operands[1]}");
-
-            if (!(operands[0] is MemByte) || !(operands[1] is MemByte))
-                Debug.Assert(false, "Inconsistent operand types");
+            _logger.All($"INSERT_OBJ {operands[0]} {operands[1]}");
 
             GameObjectId objId = ((MemByte)operands[0]).Value;
             GameObjectId destId = ((MemByte)operands[0]).Value;
@@ -471,14 +583,10 @@ namespace ZAnGian
 
         private void OpcodeJE(MemValue[] operands)
         {
-            _logger.All($"je {operands[0]} {operands[1]}");
-
-            if (!(operands[0] is MemWord) || !(operands[1] is MemWord))
-                Debug.Assert(false, "Inconsistent operand types");
+            _logger.All($"JE {operands[0]} {operands[1]}");
 
             MemWord a = (MemWord)operands[0];
             MemWord b = (MemWord)operands[1];
-
 
             MemWord targetAddr = _memory.ReadWord(_pc);
             _pc += 2;
@@ -488,14 +596,10 @@ namespace ZAnGian
 
         private void OpcodeJIn(MemValue[] operands)
         {
-            _logger.All($"jin {operands[0]} {operands[1]}");
-
-            if (!(operands[0] is MemByte) || !(operands[1] is MemByte))
-                Debug.Assert(false, "Inconsistent operand types");
+            _logger.All($"JIN {operands[0]} {operands[1]}");
 
             GameObjectId objId = ((MemByte)operands[0]).Value;
             GameObjectId parentId = ((MemByte)operands[1]).Value;
-
 
             MemWord targetAddr = _memory.ReadWord(_pc);
             _pc += 2;
@@ -503,67 +607,108 @@ namespace ZAnGian
             GameObject obj = _memory.FindObject(objId);
 
             if (obj != null && obj.ParentId == parentId)
-                _pc = targetAddr;
+                _pc = targetAddr; //FIXME: use branch logic
         }
 
         private void OpcodeJL(MemValue[] operands)
         {
-            _logger.All($"jl {operands[0]} {operands[1]}");
+            _logger.All($"JL {operands[0]} {operands[1]}");
 
-            if (!(operands[0] is MemWord) || !(operands[1] is MemWord))
-                Debug.Assert(false, "Inconsistent operand types");
+            int a = operands[0].SignedValue;
+            int b = operands[1].SignedValue;
 
-            MemWord a = (MemWord)operands[0];
-            MemWord b = (MemWord)operands[1];
-
-
-            MemWord targetAddr = _memory.ReadWord(_pc);
-            _pc += 2;
-            if (a.SignedValue < b.SignedValue)
-                _pc = targetAddr;
+            BranchJump(a < b);
         }
 
         private void OpcodeMod(MemValue[] operands)
         {
-            _logger.All($"mod {operands[0]} {operands[1]}");
-
-            if (!(operands[0] is MemWord) || !(operands[1] is MemWord))
-                Debug.Assert(false, "Inconsistent operand types");
-
+            _logger.All($"MOD {operands[0]} {operands[1]}");
             MemWord a = (MemWord)operands[0];
             MemWord b = (MemWord)operands[1];
-
-
             GameVariableId varId = _memory.ReadByte(_pc).Value;
             _pc++;
-
             if (b.SignedValue == 0)
             {
-                Abort("Division by zero");
+                Debug.Assert(false, "Division by zero");
             }
             else
             {
                 WriteVariable(varId, MemWord.fromSignedValue(a.SignedValue % b.SignedValue));
             }
         }
+        private void OpcodeStore(MemValue[] operands)
+        {
+            _logger.All($"STORE {operands[0]} {operands[1]}");
+            GameVariableId varId = ((MemByte)operands[0]).Value;
+            MemByte val = (MemByte)operands[1];
+            WriteVariable(varId, new MemWord(val.Value));
+        }
 
         //-------------------------------------------------
         //-------------------------------------------------
+
+        /** Branching logic, as per spec 4.7
+             The branch information is stored in one or two bytes, indicating what to do with the result of the test.
+            If bit 7 of the first byte is 0, a branch occurs when the condition was false; 
+            if 1, then branch is on true.If bit 6 is set, then the branch occupies 1 byte only, 
+                and the "offset" is in the range 0 to 63, given in the bottom 6 bits.If bit 6 is clear, 
+            then the offset is a signed 14 - bit number given in bits 0 to 5 of the first byte followed by all 8 of the second.
+        */
+        private void BranchJump(bool condition)
+        {
+            MemByte addr1 = _memory.ReadByte(_pc);
+            bool branchOnTrue = ((addr1.Value & 0b10000000) == 0b10000000);
+            bool addrOn1Byte = ((addr1.Value & 0b01000000) == 0b01000000);
+
+
+            MemWord targetOffset;
+            if (addrOn1Byte)
+            {
+                targetOffset = new MemWord(addr1.Value & 0b00111111);
+                _pc++;
+            }
+            else
+            {
+                targetOffset = new MemWord( ((addr1.Value & 0b00111111) << 8) + _memory.ReadByte(_pc + 1).Value );
+                _pc += 2;
+            }
+
+            if ((condition && branchOnTrue) || (!condition && !branchOnTrue))
+            {
+                //jump
+                if (targetOffset.SignedValue == 0x00)
+                {
+                    //return false from current routine
+                    throw new NotImplementedException();
+                }
+                else if (targetOffset.SignedValue == 0x01)
+                {
+                    //return false from current routine
+                    throw new NotImplementedException();
+                }
+                else
+                    _pc += targetOffset.SignedValue - 2;
+                //_pc += targetOffset.SignedValue + 1;
+            }
+
+        }
 
         private void Abort(string msg)
         {
             _logger.Error(msg);
             Environment.Exit(1);
         }
-
         private MemWord ReadVariable(GameVariableId varId)
         {
             _logger.Debug($"\t ReadVariable[{varId}]");
-
-            if (varId <= 0x0f)
+            if (varId == 0x00)
+            {
+                return _stack.Pop();
+            }
+            else if (varId <= 0x0f)
             {
                 //local variable
-                throw new NotImplementedException();
+                return _stack.ReadLocalVariable(varId);
             }
             else
             {
@@ -579,10 +724,14 @@ namespace ZAnGian
         {
             _logger.Debug($"\t WriteVariable[{varId}]");
 
-            if (varId <= 0x0f)
+            if (varId == 0x00)
+            {
+                _stack.Push(value);
+            }
+            else if (varId <= 0x0f)
             {
                 //local variable
-                throw new NotImplementedException();
+                _stack.WriteLocalVariable(varId, value);
             }
             else
             {

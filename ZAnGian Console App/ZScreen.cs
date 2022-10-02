@@ -15,7 +15,7 @@ namespace ZAnGian
 
         public void Print(string msg)
         {
-            Console.WriteLine(msg);
+            Console.Write(msg);
         }
     }
 
