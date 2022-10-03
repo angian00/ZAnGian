@@ -6,8 +6,8 @@ using System.Security.Principal;
 namespace ZAnGian
 {
     public abstract class MemValue {
-        public virtual uint FullValue { get => uint.MaxValue; }
-        public virtual int SignedValue { get => int.MinValue; }
+        public virtual ushort FullValue { get => ushort.MaxValue; }
+        public virtual short SignedValue { get => short.MinValue; }
     }
 
 
@@ -15,8 +15,8 @@ namespace ZAnGian
     {
         private byte _value;
         public byte Value { get => _value; }
-        public override uint FullValue { get => _value; }
-        public override int SignedValue
+        public override ushort FullValue { get => _value; }
+        public override short SignedValue
         {
             get => _value; //CHECK
         }
@@ -96,9 +96,9 @@ namespace ZAnGian
     {
         private ushort _value;
         public ushort Value { get => _value; }
-        public override uint FullValue { get => _value; }
-        public override int SignedValue { 
-            get => (_value > Int16.MaxValue) ? (Int16)(_value - 0x10000) : (Int16)_value;
+        public override ushort FullValue { get => _value; }
+        public override short SignedValue { 
+            get => (_value > short.MaxValue) ? (short)(_value - 0x10000) : (short)_value;
         }
 
         public byte HighByte { get => (byte)(_value >> 8); }
