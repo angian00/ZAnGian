@@ -32,8 +32,6 @@ namespace ZAnGian
         private MemWord Checksum;
         private MemWord Revision;
         
-        private MemWord[] ObjPropDefaults = new MemWord[GameObject.MAX_N_OBJ_PROPS];
-
 
         public ZMemory(byte[] rawData)
         {
@@ -136,41 +134,13 @@ namespace ZAnGian
 
         }
 
-        public MemWord ReadPropDefault(short iProperty)
+        public MemWord GetDefaultPropertyValue(ushort propId)
         {
-            return ReadWord(ObjectTableLoc + iProperty);
+            return ReadWord(ObjectTableLoc + propId * 2);
+            //return ReadWord(ObjectTableLoc + (propId-1) * 2);
         }
 
 
-        /*
-        private void ReadProperties(ref GameObject gameObj, MemWord propTableAddr)
-        {
-            //Console.WriteLine($"DEBUG: ReadProperties[{gameObj.Id}] [{propTableAddr}]");
-
-            MemWord memPos = propTableAddr;
-            
-            //read shortName header
-            byte textLen = ReadByte(memPos);
-            //Console.WriteLine($"DEBUG: ReadProperties textLen: [{textLen}]");
-
-            gameObj.ShortName = Zscii.DecodeText(Data, (MemWord)(memPos + 1), out _, (ushort)(2*textLen));
-            memPos += (MemWord) (2 * textLen + 1);
-
-            while (true)
-            {
-                byte sizeByte = ReadByte(memPos);
-                if (sizeByte == 0)
-                    break;
-
-                byte pId = (byte)(sizeByte & 0b00011111);
-                byte pSize = (byte)((sizeByte + 1) / 32);
-                uint pData = ReadNBytes(pSize, memPos + 1);
-
-                gameObj.Properties[pId] = new ObjProperty(pId, pSize, pData);
-                memPos += (MemWord)(pSize + 1);
-            }
-        }
-        */
 
         public MemByte ReadByte(ushort targetAddr)
         {

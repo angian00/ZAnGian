@@ -1,11 +1,6 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.Reflection.Emit;
-using System.Runtime.ConstrainedExecution;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ZAnGian
 {
@@ -54,7 +49,7 @@ namespace ZAnGian
             //while (true)
             for (int iInstr = 0; iInstr < 100; iInstr++)
             {
-                _logger.Debug($"sp={_pc} [0x{_pc:x}]: {StringUtils.ByteToBinaryString(_memory.ReadByte(_pc).Value)}");
+                _logger.All($"sp={_pc.Value} [{_pc}]: {StringUtils.ByteToBinaryString(_memory.ReadByte(_pc).Value)}");
 
                 byte formBits = (byte)(_memory.ReadByte(_pc).Value >> 6);
                 OpCodeForm form;
@@ -184,7 +179,7 @@ namespace ZAnGian
         private void RunOpCode(bool isVAR, byte opcode, byte nOps, OperandType[] operandTypes, MemValue[] operands)
         {
             string opCodeStr = (isVAR ? "VAR" : $"{nOps}OP") + $":0x{opcode:X}";
-            _logger.Debug($"RunOpCode [{opCodeStr}]");
+            _logger.All($"RunOpCode [{opCodeStr}]");
 
             if (isVAR)
             {
@@ -230,6 +225,10 @@ namespace ZAnGian
                                 OpcodePop();
                                 break;
 
+                            case 0x0B:
+                                OpcodeNewLine();
+                                break;
+
                             case 0x0E:
                             case 0x0F:
                                 throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
@@ -243,6 +242,14 @@ namespace ZAnGian
                     case 1:
                         switch (opcode)
                         {
+                            case 0x02:
+                                OpcodeGetChild(operands);
+                                break;
+
+                            case 0x03:
+                                OpcodeGetParent(operands);
+                                break;
+
                             case 0x05:
                                 OpcodeInc(operands);
                                 break;
@@ -257,6 +264,10 @@ namespace ZAnGian
 
                             case 0x08:
                                 throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
+
+                            case 0x0A:
+                                OpcodePrintObj(operands);
+                                break;
 
                             case 0x0C:
                                 OpcodeJump(operands);
@@ -307,6 +318,14 @@ namespace ZAnGian
                                 break;
 
 
+                            case 0x0A:
+                                OpcodeTestAttr(operands);
+                                break;
+
+                            case 0x0B:
+                                OpcodeSetAttr(operands);
+                                break;
+
                             case 0x0D:
                                 OpcodeStore(operands);
                                 break;
@@ -321,6 +340,10 @@ namespace ZAnGian
 
                             case 0x10:
                                 OpcodeLoadB(operands);
+                                break;
+
+                            case 0x11:
+                                OpcodeGetProp(operands);
                                 break;
 
 
@@ -358,7 +381,7 @@ namespace ZAnGian
 
         private void OpcodeCall(int nOps, MemValue[] operands)
         {
-            _logger.All($"CALL {FormatOperands(nOps, operands)}");
+            _logger.Debug($"CALL {FormatOperands(nOps, operands)}");
 
             MemWord packedAddr = (MemWord)operands[0];
             MemWord routineAddr = packedAddr * 2;
@@ -390,23 +413,22 @@ namespace ZAnGian
                 _pc += 2;
             }
 
-            _stack.AddRoutine(newRoutine);
+            _stack.PushRoutine(newRoutine);
         }
 
 
         private void OpcodePrintChar(int nOps, MemValue[] operands)
         {
-            _logger.All($"PRINT_CHAR {FormatOperands(nOps, operands)}");
+            _logger.Debug($"PRINT_CHAR {FormatOperands(nOps, operands)}");
 
-            //Zscii.DecodeText();
             byte zchar = (byte)operands[0].FullValue;
-            _screen.Print($"{Zscii.ZChar2Zscii(zchar)}");
+            _screen.Print($"{Zscii.Zscii2Utf(zchar)}");
         }
 
 
         private void OpcodePrintNum(int nOps, MemValue[] operands)
         {
-            _logger.All($"PRINT_NUM {FormatOperands(nOps, operands)}");
+            _logger.Debug($"PRINT_NUM {FormatOperands(nOps, operands)}");
 
             short val = operands[0].SignedValue;
 
@@ -417,15 +439,21 @@ namespace ZAnGian
         //--- 0OP -----------------------------------------
         //-------------------------------------------------
 
+        private void OpcodeNewLine()
+        {
+            _logger.Debug("NEW_LINE");
+            _screen.Print("\n");
+        }
+
         private void OpcodePop()
         {
-            _logger.All("POP");
+            _logger.Debug("POP");
             _stack.Pop();
         }
 
         private void OpcodePrint()
         {
-            _logger.All("PRINT");
+            _logger.Debug("PRINT");
 
             ushort nBytesRead;
             string msg = Zscii.DecodeText(_memory.Data, _pc, out nBytesRead);
@@ -436,14 +464,14 @@ namespace ZAnGian
 
         private void OpcodeRFalse()
         {
-            _logger.All("RFALSE");
-            ReturnRoutine(false);
+            _logger.Debug("RFALSE");
+            ReturnRoutine(MemWord.FromBool(false));
         }
 
         private void OpcodeRTrue()
         {
-            _logger.All("RTRUE");
-            ReturnRoutine(true);
+            _logger.Debug("RTRUE");
+            ReturnRoutine(MemWord.FromBool(true));
         }
 
 
@@ -453,7 +481,7 @@ namespace ZAnGian
 
         private void OpcodeDec(MemValue[] operands)
         {
-            _logger.All($"DEC {operands[0]}");
+            _logger.Debug($"DEC {operands[0]}");
 
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
@@ -462,9 +490,38 @@ namespace ZAnGian
             WriteVariable(varId, varValue);
         }
 
+        private void OpcodeGetChild(MemValue[] operands)
+        {
+            _logger.Debug($"GET_CHILD {operands[0]}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            WriteVariable(storeVar, obj.ChildId);
+
+            Branch(obj.ChildId != 0x00);
+        }
+
+        private void OpcodeGetParent(MemValue[] operands)
+        {
+            _logger.Debug($"GET_PARENT {operands[0]}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            WriteVariable(storeVar, obj.ParentId);
+        }
+
+
         private void OpcodeInc(MemValue[] operands)
         {
-            _logger.All($"INC {operands[0]}");
+            _logger.Debug($"INC {operands[0]}");
 
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
@@ -475,7 +532,7 @@ namespace ZAnGian
 
         private void OpcodeJump(MemValue[] operands)
         {
-            _logger.All($"JUMP {operands[0]}");
+            _logger.Debug($"JUMP {operands[0]}");
 
             short targetOffset = operands[0].SignedValue;
             _pc += targetOffset - 2;
@@ -484,7 +541,7 @@ namespace ZAnGian
 
         private void OpcodeNot(MemValue[] operands)
         {
-            _logger.All($"NOT {operands[0]}");
+            _logger.Debug($"NOT {operands[0]}");
 
             MemWord value = new MemWord(operands[0].FullValue); //force to MemWord even if it is a MemByte
 
@@ -497,7 +554,7 @@ namespace ZAnGian
 
         private void OpcodePrintAddr(MemValue[] operands)
         {
-            _logger.All($"PRINT_ADDR {operands[0]}");
+            _logger.Debug($"PRINT_ADDR {operands[0]}");
 
             MemWord targetAddr = new MemWord(operands[0].FullValue);
             string msg = Zscii.DecodeText(_memory.Data, targetAddr, out _);
@@ -506,9 +563,20 @@ namespace ZAnGian
         }
 
 
+        private void OpcodePrintObj(MemValue[] operands)
+        {
+            _logger.Debug($"PRINT_OBJ {operands[0]}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            _screen.Print(obj.ShortName);
+        }
+
+
         private void OpcodePrintPAddr(MemValue[] operands)
         {
-            _logger.All($"PRINT_PADDR {operands[0]}");
+            _logger.Debug($"PRINT_PADDR {operands[0]}");
 
             MemWord targetAddr = new MemWord(operands[0].FullValue * PACKED_ADDR_FACTOR);
             string msg = Zscii.DecodeText(_memory.Data, targetAddr, out _);
@@ -522,7 +590,7 @@ namespace ZAnGian
         //-------------------------------------------------
         private void OpcodeAnd(MemValue[] operands)
         {
-            _logger.All($"AND {operands[0]} {operands[1]}");
+            _logger.Debug($"AND {operands[0]} {operands[1]}");
 
             MemWord a = new MemWord(operands[0].FullValue);
             MemWord b = new MemWord(operands[1].FullValue);
@@ -533,9 +601,28 @@ namespace ZAnGian
             WriteVariable(storeVar, a & b);
         }
 
+        private void OpcodeGetProp(MemValue[] operands)
+        {
+            _logger.Debug($"GET_PROP {operands[0]} {operands[1]}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            ushort propId = operands[1].FullValue;
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            MemValue pValue = obj.GetPropertyValue(propId);
+            if (pValue == null)
+                pValue = _memory.GetDefaultPropertyValue(propId);
+
+            WriteVariable(storeVar, new MemWord(pValue.FullValue));
+        }
+
         private void OpcodeIncChk(MemValue[] operands)
         {
-            _logger.All($"INC_CHK {operands[0]} {operands[1]}");
+            _logger.Debug($"INC_CHK {operands[0]} {operands[1]}");
 
             GameVariableId varId = ((MemByte)operands[0]).Value;
             MemWord cmpValue = (MemWord)operands[1];
@@ -551,10 +638,10 @@ namespace ZAnGian
 
         private void OpcodeInsertObj(MemValue[] operands)
         {
-            _logger.All($"INSERT_OBJ {operands[0]} {operands[1]}");
+            _logger.Debug($"INSERT_OBJ {operands[0]} {operands[1]}");
 
-            GameObjectId objId = ((MemByte)operands[0]).Value;
-            GameObjectId destId = ((MemByte)operands[0]).Value;
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObjectId destId = (GameObjectId)operands[1].FullValue;
 
             GameObject obj = _memory.FindObject(objId);
 
@@ -564,17 +651,17 @@ namespace ZAnGian
 
         private void OpcodeJE(MemValue[] operands)
         {
-            _logger.All($"JE {operands[0]} {operands[1]}");
+            _logger.Debug($"JE {operands[0]} {operands[1]}");
 
             Branch(operands[0].FullValue == operands[1].FullValue);
         }
 
         private void OpcodeJIn(MemValue[] operands)
         {
-            _logger.All($"JIN {operands[0]} {operands[1]}");
+            _logger.Debug($"JIN {operands[0]} {operands[1]}");
 
-            GameObjectId objId = ((MemByte)operands[0]).Value;
-            GameObjectId parentId = ((MemByte)operands[1]).Value;
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObjectId parentId = (GameObjectId)operands[1].FullValue;
 
             GameObject obj = _memory.FindObject(objId);
 
@@ -583,21 +670,21 @@ namespace ZAnGian
 
         private void OpcodeJG(MemValue[] operands)
         {
-            _logger.All($"JG {operands[0]} {operands[1]}");
+            _logger.Debug($"JG {operands[0]} {operands[1]}");
 
             Branch(operands[0].SignedValue > operands[1].SignedValue);
         }
 
         private void OpcodeJL(MemValue[] operands)
         {
-            _logger.All($"JL {operands[0]} {operands[1]}");
+            _logger.Debug($"JL {operands[0]} {operands[1]}");
 
             Branch(operands[0].SignedValue < operands[1].SignedValue);
         }
 
         private void OpcodeLoadB(MemValue[] operands)
         {
-            _logger.All($"LOADB {operands[0]} {operands[1]}");
+            _logger.Debug($"LOADB {operands[0]} {operands[1]}");
 
             ushort arr = operands[0].FullValue;
             ushort index = operands[1].FullValue;
@@ -611,7 +698,7 @@ namespace ZAnGian
 
         private void OpcodeLoadW(MemValue[] operands)
         {
-            _logger.All($"LOADW {operands[0]} {operands[1]}");
+            _logger.Debug($"LOADW {operands[0]} {operands[1]}");
 
             ushort arr = operands[0].FullValue;
             ushort index = operands[1].FullValue;
@@ -625,7 +712,7 @@ namespace ZAnGian
 
         private void OpcodeMod(MemValue[] operands)
         {
-            _logger.All($"MOD {operands[0]} {operands[1]}");
+            _logger.Debug($"MOD {operands[0]} {operands[1]}");
             short a = operands[0].SignedValue;
             short b = operands[1].SignedValue;
 
@@ -638,19 +725,44 @@ namespace ZAnGian
             }
             else
             {
-                WriteVariable(varId, MemWord.fromSignedValue(a % b));
+                WriteVariable(varId, MemWord.FromSignedValue(a % b));
             }
+        }
+
+        private void OpcodeSetAttr(MemValue[] operands)
+        {
+            _logger.Debug($"SET_ATTR {operands[0]} {operands[1]}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            ushort iAttr = operands[1].FullValue;
+
+            obj.SetAttribute(iAttr);
         }
 
         private void OpcodeStore(MemValue[] operands)
         {
-            _logger.All($"STORE {operands[0]} {operands[1]}");
+            _logger.Debug($"STORE {operands[0]} {operands[1]}");
 
             GameVariableId varId = ((MemByte)operands[0]).Value; //CHECK ReadOperands
             
             ushort value = operands[1].FullValue;
             WriteVariable(varId, value);
         }
+
+        private void OpcodeTestAttr(MemValue[] operands)
+        {
+            _logger.Debug($"TEST_ATTR {operands[0]} {operands[1]}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            ushort iAttr = operands[1].FullValue;
+
+            Branch(obj.HasAttribute(iAttr));
+        }
+
 
         //-------------------------------------------------
         //-------------------------------------------------
@@ -684,13 +796,14 @@ namespace ZAnGian
             if ((condition && branchOnTrue) || (!condition && !branchOnTrue))
             {
                 //jump
+
                 if (targetOffset.SignedValue == 0x00)
                 {
-                    ReturnRoutine(false);
+                    ReturnRoutine(MemWord.FromBool(false));
                 }
                 else if (targetOffset.SignedValue == 0x01)
                 {
-                    ReturnRoutine(true);
+                    ReturnRoutine(MemWord.FromBool(true));
                 }
                 else
                 {
@@ -700,14 +813,17 @@ namespace ZAnGian
 
         }
 
-        private void ReturnRoutine(bool value)
+        private void ReturnRoutine(MemWord value)
         {
-            throw new NotImplementedException();
+            RoutineData currRoutine = _stack.PopRoutine();
+            WriteVariable(currRoutine.ReturnVariableId, value);
+            
+            _pc = currRoutine.ReturnAddress;
         }
+
 
         private MemWord ReadVariable(GameVariableId varId)
         {
-            _logger.Debug($"\t ReadVariable[{varId}]");
             if (varId == 0x00)
             {
                 return _stack.Pop();
@@ -720,7 +836,7 @@ namespace ZAnGian
             else
             {
                 //global variable
-                MemWord varAddr = (MemWord)(_memory.GlobalVarTableLoc + 2 * (varId - 0x10));
+                MemWord varAddr = _memory.GlobalVarTableLoc + 2 * (varId - 0x10);
 
                 return _memory.ReadWord(varAddr);
             }
@@ -733,8 +849,6 @@ namespace ZAnGian
 
         private void WriteVariable(GameVariableId varId, MemWord value)
         {
-            _logger.Debug($"\t WriteVariable[{varId}]");
-
             if (varId == 0x00)
             {
                 _stack.Push(value);

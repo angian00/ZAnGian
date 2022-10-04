@@ -22,9 +22,14 @@ namespace ZAnGian
             return _valueStack.Pop();
         }
 
-        public void AddRoutine(RoutineData newRoutine)
+        public void PushRoutine(RoutineData newRoutine)
         {
             _routineStack.Push(newRoutine);
+        }
+
+        public RoutineData PopRoutine()
+        {
+            return _routineStack.Pop();
         }
 
         public void WriteLocalVariable(GameVariableId varId, MemWord value)

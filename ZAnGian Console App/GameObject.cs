@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Security.Cryptography;
 
 namespace ZAnGian
 {
@@ -52,7 +50,7 @@ namespace ZAnGian
             {
                 MemWord snAddr = _memory.ReadWord(_propPAddr);
                 byte textLen = _memory.ReadByte(snAddr).Value;
-                string value = Zscii.DecodeText(_memory.Data, (MemWord)(snAddr + 1), out _, (ushort)(2 * textLen));
+                string value = Zscii.DecodeText(_memory.Data, snAddr + 1, out _, (ushort)(2 * textLen));
 
                 return value;
             }
@@ -65,10 +63,10 @@ namespace ZAnGian
             _memory = memory;
 
             _attrAddr = baseAddr;
-            _parentAddr = (MemWord)(baseAddr + 4);
-            _siblingAddr = (MemWord)(baseAddr + 5);
-            _childAddr = (MemWord)(baseAddr + 6);
-            _propPAddr = (MemWord)(baseAddr + 7);
+            _parentAddr = baseAddr + 4;
+            _siblingAddr = baseAddr + 5;
+            _childAddr = baseAddr + 6;
+            _propPAddr = baseAddr + 7;
 
             //TODO: properties
         }
@@ -96,6 +94,66 @@ namespace ZAnGian
         }
 
 
+        public bool HasAttribute(ushort iAttr)
+        {
+            int iFlag = 31 - iAttr;
+            int iAttrByte = iFlag / 4;
+            int iAttrBit = iFlag % 4;
+
+            byte attrByte = _memory.ReadByte(_attrAddr + iAttrByte).Value;
+
+            return (attrByte & (1 << iAttrBit)) == (1 << iAttrBit);
+        }
+
+        public void SetAttribute(ushort iAttr)
+        {
+            int iFlag = 31 - iAttr;
+            int iAttrByte = iFlag / 4;
+            int iAttrBit = iFlag % 4;
+
+            MemByte attrByte = _memory.ReadByte(_attrAddr + iAttrByte);
+
+            attrByte |= (1 << iAttrBit);
+            _memory.WriteByte(_attrAddr + iAttrByte, attrByte);
+        }
+
+        /**
+         * As per spec 12.4
+         */
+        public MemValue GetPropertyValue(ushort targetPropId)
+        {
+            MemWord propAddr = _memory.ReadWord(_propPAddr);
+            
+            //skip shortname
+            ushort propLen = _memory.ReadByte(propAddr).Value;
+            propAddr += propLen*2 + 1;
+
+            while (true)
+            {
+                MemByte sizeByte = _memory.ReadByte(propAddr);
+                propAddr++;
+
+                if (sizeByte == 0x00)
+                    return null;
+
+                propLen = ((sizeByte >> 5) + 1).Value;
+                ushort propId = (sizeByte & 0b00011111).Value;
+                if (propId == targetPropId)
+                {
+                    if (propLen == 1)
+                        return _memory.ReadByte(propAddr);
+                    else if (propLen == 2)
+                        return _memory.ReadWord(propAddr);
+                    else
+                        throw new NotImplementedException();
+                }
+
+                propAddr += propLen;
+            }
+        }
+
+
+        
         public void DetachFromParent()
         {
             if (this.ParentId == 0x00)

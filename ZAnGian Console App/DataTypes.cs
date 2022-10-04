@@ -85,6 +85,14 @@ namespace ZAnGian
         {
             return new MemByte(v._value & bitMask);
         }
+        public static MemByte operator |(MemByte v, uint bitMask)
+        {
+            return new MemByte(v._value | bitMask);
+        }
+        public static MemByte operator |(MemByte v, int bitMask)
+        {
+            return new MemByte(v._value | bitMask);
+        }
         public static MemByte operator >>(MemByte v, int offset)
         {
             return new MemByte(v._value >> (offset));
@@ -123,13 +131,18 @@ namespace ZAnGian
         }
 
 
-        public static MemWord fromSignedValue(int val)
+        public static MemWord FromSignedValue(int val)
         {
             if (val < 0)
                 return new MemWord(0x10000 + val);
             else
                 return new MemWord(val);
 
+        }
+
+        public static MemWord FromBool(bool val)
+        {
+                return new MemWord(val ? 0x01 : 0x00);
         }
 
 
@@ -205,6 +218,10 @@ namespace ZAnGian
         public static MemWord operator &(MemWord v, uint bitMask)
         {
             return new MemWord(v._value & bitMask);
+        }
+        public static MemWord operator |(MemWord v, uint bitMask)
+        {
+            return new MemWord(v._value | bitMask);
         }
         public static MemWord operator >>(MemWord v, int offset)
         {

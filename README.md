@@ -5,6 +5,11 @@ A Z-Machine implementation.
 ## Milestones
 
 
+## TODO
+- read routine arguments
+- indirect variable references
+- make stack relative to routines
+
 ## Resources
 Z-Machine Specification: 
 https://www.inform-fiction.org/zmachine/standards/z1point1/index.html

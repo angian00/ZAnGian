@@ -12,8 +12,7 @@ namespace ZAnGian
 
         public ZInterpreter()
         {
-            //_logger.Configure(LogLevel.ALL, null);
-            _logger.Configure(LogLevel.ALL, "zangian.log");
+            _logger.Configure(LogLevel.DEBUG, "zangian.log");
         }
 
 
