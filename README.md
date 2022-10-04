@@ -7,8 +7,11 @@ A Z-Machine implementation.
 
 ## TODO
 - read routine arguments
-- indirect variable references
+- indirect variable references for
+	inc, dec, inc_chk, dec_chk, load, store, pull
+
 - make stack relative to routines
+
 
 ## Resources
 Z-Machine Specification: 

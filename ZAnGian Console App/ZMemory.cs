@@ -136,8 +136,8 @@ namespace ZAnGian
 
         public MemWord GetDefaultPropertyValue(ushort propId)
         {
-            return ReadWord(ObjectTableLoc + propId * 2);
-            //return ReadWord(ObjectTableLoc + (propId-1) * 2);
+            //return ReadWord(ObjectTableLoc + propId * 2);
+            return ReadWord(ObjectTableLoc + (propId-1) * 2);
         }
 
 

@@ -117,6 +117,18 @@ namespace ZAnGian
             _memory.WriteByte(_attrAddr + iAttrByte, attrByte);
         }
 
+        public void ClearAttribute(ushort iAttr)
+        {
+            int iFlag = 31 - iAttr;
+            int iAttrByte = iFlag / 4;
+            int iAttrBit = iFlag % 4;
+
+            MemByte attrByte = _memory.ReadByte(_attrAddr + iAttrByte);
+
+            attrByte ^= (1 << iAttrBit);
+            _memory.WriteByte(_attrAddr + iAttrByte, attrByte);
+        }
+
         /**
          * As per spec 12.4
          */

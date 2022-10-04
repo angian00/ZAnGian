@@ -29,10 +29,9 @@ namespace ZAnGian
 
 
             //--- DEBUG ---
-            memory.DumpMetadata();
-            Console.WriteLine("");
+            //memory.DumpMetadata();
 
-            memory.ReadObjList();
+            //memory.ReadObjList();
 
             //memory.WalkObjTree(1, (GameObject gameObj, int depth) =>
             //{
