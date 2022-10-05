@@ -162,7 +162,7 @@ namespace ZAnGian
         /**
          * As per spec 3.8
          */
-        public static Char Zscii2Utf(int zsciiCode)
+        public static Char Zscii2Ascii(int zsciiCode)
         {
             switch (zsciiCode)
             {

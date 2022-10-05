@@ -23,7 +23,7 @@ namespace ZAnGian
         public  int ZVersion;
         private MemWord BaseHighMem;
         public  MemWord StartPC { get; private set; }
-        private MemWord DictionaryLoc;
+        public  MemWord DictionaryLoc { get; private set; }
         private MemWord ObjectTableLoc;
         public  MemWord GlobalVarTableLoc;
         private MemWord BaseStaticMem;
