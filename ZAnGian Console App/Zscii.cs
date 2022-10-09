@@ -16,7 +16,8 @@ namespace ZAnGian
 
 
         private static Dictionary<Alphabet, string> _alphabetChars = new Dictionary<Alphabet, string>();
-        private static Dictionary<int, int> _defaultExtendedTable = new Dictionary<int, int>() {
+        private static Dictionary<int, int> _defaultExtendedAscii2ZsciiTable = new Dictionary<int, int>();
+        private static Dictionary<int, int> _defaultExtendedZscii2AsciiTable = new Dictionary<int, int>() {
                 { 155, 0x0e4 },
                 { 156, 0x0f6 },
                 { 157, 0x0fc },
@@ -94,6 +95,7 @@ namespace ZAnGian
             _alphabetChars[Alphabet.Uppercase] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             _alphabetChars[Alphabet.Punctuation] = " \n0123456789.,!?_#'\"/\\-:()";
 
+            _defaultExtendedAscii2ZsciiTable = CollectionUtils.FlipDict(_defaultExtendedZscii2AsciiTable);
         }
 
         public static string DecodeText(byte[] data, MemWord startAddr, out ushort nBytesRead, ushort nBytesToRead=ushort.MaxValue)
@@ -173,10 +175,29 @@ namespace ZAnGian
 
                 case >= 32 and <= 126: return (char)zsciiCode;
 
-                case >= 155 and <= 223: return (char)_defaultExtendedTable[zsciiCode];
+                case >= 155 and <= 223: return (char)_defaultExtendedZscii2AsciiTable[zsciiCode];
                 case >= 224 and <= 255: return '?'; // valid codepoint but not mapped in default table?
 
                 default: throw new ArgumentException($"Invalid zscii code: {zsciiCode}");
+            }
+        }
+
+        public static int Ascii2Zscii(char ch)
+        {
+            switch (ch)
+            {
+                case (char)0x00: return 0;
+                case '\t': return 9;
+                case ' ': return 11;
+                case '\n': return 13;
+
+                case >= (char)32 and <= (char)126: return (int)ch;
+                    
+                default: 
+                    if (_defaultExtendedAscii2ZsciiTable.ContainsKey((int)ch))
+                        return _defaultExtendedAscii2ZsciiTable[ch];
+                    else
+                        throw new ArgumentException($"Invalid ascii char: {ch}");
             }
         }
     }

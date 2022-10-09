@@ -150,6 +150,19 @@ namespace ZAnGian
             _screen.Print(msg);
         }
 
+        private void OpcodePrintRet()
+        {
+            _logger.Debug("PRINT_RET");
+
+            ushort nBytesRead;
+            string msg = Zscii.DecodeText(_memory.Data, _pc, out nBytesRead);
+            _pc += nBytesRead;
+
+            _screen.Print(msg);
+            _screen.Print("\n");
+            ReturnRoutine(MemWord.FromBool(true));
+        }
+
         private void OpcodeRFalse()
         {
             _logger.Debug("RFALSE");
@@ -167,10 +180,11 @@ namespace ZAnGian
         //--- 1OP -----------------------------------------
         //-------------------------------------------------
 
-        private void OpcodeDec(MemValue[] operands)
+        private void OpcodeDec(int nOps, OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"DEC {operands[0]}");
 
+            //Debug.Assert(operandTypes[0] == OperandType.Variable);
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
             MemWord varValue = ReadVariable(varId);
@@ -206,6 +220,24 @@ namespace ZAnGian
             WriteVariable(storeVar, obj.ParentId);
         }
 
+        private void OpcodeGetPropLen(MemValue[] operands)
+        {
+            _logger.Debug($"GET_PROP_LEN {operands[0]}");
+
+            MemWord propAddr = new MemWord(operands[0].FullValue);
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            MemByte pSize;
+            if (propAddr == 0x00)
+                pSize = new MemByte(0x00);
+            else
+                pSize = GameObject.GetPropertyLength(_memory, propAddr);
+
+            WriteVariable(storeVar, pSize.FullValue);
+        }
+
         private void OpcodeGetSibling(MemValue[] operands)
         {
             _logger.Debug($"GET_SIBLING {operands[0]}");
@@ -217,13 +249,16 @@ namespace ZAnGian
             _pc++;
 
             WriteVariable(storeVar, obj.SiblingId);
+
+            Branch(obj.SiblingId != 0x00);
         }
 
 
-        private void OpcodeInc(MemValue[] operands)
+        private void OpcodeInc(int nOps, OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"INC {operands[0]}");
 
+            //Debug.Assert(operandTypes[0] == OperandType.Variable);
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
             MemWord varValue = ReadVariable(varId);
@@ -285,6 +320,16 @@ namespace ZAnGian
             _screen.Print(msg);
         }
 
+        private void OpcodeRemoveObj(MemValue[] operands)
+        {
+            _logger.Debug($"REMOVE_OBJ {operands[0]}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            obj.DetachFromParent();
+        }
+
         private void OpcodeRet(MemValue[] operands)
         {
             _logger.Debug($"RET {operands[0]}");
@@ -295,6 +340,19 @@ namespace ZAnGian
         //-------------------------------------------------
         //--- 2OP -----------------------------------------
         //-------------------------------------------------
+
+        private void OpcodeAdd(MemValue[] operands)
+        {
+            _logger.Debug($"ADD {operands[0]} {operands[1]}");
+            short a = operands[0].SignedValue;
+            short b = operands[1].SignedValue;
+
+            GameVariableId varId = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            WriteVariable(varId, MemWord.FromSignedValue(a + b));
+        }
+
         private void OpcodeAnd(MemValue[] operands)
         {
             _logger.Debug($"AND {operands[0]} {operands[1]}");
@@ -320,6 +378,25 @@ namespace ZAnGian
             obj.ClearAttribute(iAttr);
         }
 
+        private void OpcodeDiv(MemValue[] operands)
+        {
+            _logger.Debug($"DIV {operands[0]} {operands[1]}");
+            short a = operands[0].SignedValue;
+            short b = operands[1].SignedValue;
+
+            GameVariableId varId = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            if (b == 0)
+            {
+                Debug.Assert(false, "Division by zero");
+            }
+            else
+            {
+                WriteVariable(varId, MemWord.FromSignedValue(a / b));
+            }
+        }
+
         private void OpcodeGetProp(MemValue[] operands)
         {
             _logger.Debug($"GET_PROP {operands[0]} {operands[1]}");
@@ -339,14 +416,39 @@ namespace ZAnGian
             WriteVariable(storeVar, new MemWord(pValue.FullValue));
         }
 
-        private void OpcodeIncChk(MemValue[] operands)
+        private void OpcodeGetPropAddr(MemValue[] operands)
+        {
+            _logger.Debug($"GET_PROP_ADDR {operands[0]} {operands[1]}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            ushort propId = operands[1].FullValue;
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            MemWord pAddr = obj.GetPropertyAddress(propId);
+            if (pAddr == null)
+                pAddr = new MemWord(0x00);
+
+            WriteVariable(storeVar, pAddr);
+        }
+
+        private void OpcodeIncChk(int nOps, OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"INC_CHK {operands[0]} {operands[1]}");
 
+            Debug.Assert(operandTypes[0] == OperandType.Variable);
             GameVariableId varId = ((MemByte)operands[0]).Value;
-            MemWord cmpValue = (MemWord)operands[1];
 
-            //CHECK ReadOperands in this case
+            MemWord cmpValue;
+            if (operandTypes[1] == OperandType.Variable)
+                cmpValue = ReadVariable(((MemByte)operands[1]).Value);
+            else
+                cmpValue = new MemWord(operands[1].FullValue);
+
+            
             MemWord varValue = ReadVariable(varId);
             varValue++;
             WriteVariable(varId, varValue);
@@ -448,6 +550,18 @@ namespace ZAnGian
             }
         }
 
+        private void OpcodeMul(MemValue[] operands)
+        {
+            _logger.Debug($"MUL {operands[0]} {operands[1]}");
+            short a = operands[0].SignedValue;
+            short b = operands[1].SignedValue;
+
+            GameVariableId varId = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            WriteVariable(varId, MemWord.FromSignedValue(a * b));
+        }
+
         private void OpcodeSetAttr(MemValue[] operands)
         {
             _logger.Debug($"SET_ATTR {operands[0]} {operands[1]}");
@@ -460,14 +574,32 @@ namespace ZAnGian
             obj.SetAttribute(iAttr);
         }
 
-        private void OpcodeStore(MemValue[] operands)
+        private void OpcodeStore(int nOps, OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"STORE {operands[0]} {operands[1]}");
 
-            GameVariableId varId = ((MemByte)operands[0]).Value; //CHECK ReadOperands
-            
-            ushort value = operands[1].FullValue;
+            //Debug.Assert(operandTypes[0] == OperandType.Variable);
+            GameVariableId varId = ((MemByte)operands[0]).Value;
+
+            ushort value;
+            if (operandTypes[1] == OperandType.Variable)
+                value = ReadVariable(((MemByte)operands[1]).Value).FullValue;
+            else
+                value = operands[1].FullValue;
+
             WriteVariable(varId, value);
+        }
+
+        private void OpcodeSub(MemValue[] operands)
+        {
+            _logger.Debug($"SUB {operands[0]} {operands[1]}");
+            short a = operands[0].SignedValue;
+            short b = operands[1].SignedValue;
+
+            GameVariableId varId = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            WriteVariable(varId, MemWord.FromSignedValue(a - b));
         }
 
         private void OpcodeTestAttr(MemValue[] operands)

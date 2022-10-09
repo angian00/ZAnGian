@@ -48,17 +48,19 @@ namespace ZAnGian
         {
             int nMaxChars = _memory.ReadByte(textBufferAddr).Value; //plus 0x00 string terminator
 
+            inputStr = inputStr.ToLower();
             if (inputStr.Length > nMaxChars)
                 inputStr = inputStr.Substring(0, nMaxChars);
 
-            int nMaxParsedWords = _memory.ReadByte(parseBufferAddr).Value;
-
+            _memory.WriteByte(textBufferAddr + 1, new MemByte(inputStr.Length));
+            for (byte iChar = 0; iChar < inputStr.Length; iChar++)
+                _memory.WriteByte(textBufferAddr + 2 + iChar, new MemByte(Zscii.Ascii2Zscii(inputStr[iChar]))); 
 
             if (inputStr.Length == 0)
-            {
-                //TODO: do something
                 return;
-            }
+
+
+            int nMaxParsedWords = _memory.ReadByte(parseBufferAddr).Value;
 
             byte nParsedWords = 0;
             int wordStart = -1;
@@ -120,9 +122,9 @@ namespace ZAnGian
             string word = inputStr.Substring(wordStart, nWordLetters);
             MemWord dictWordAddr = SearchDict(word);
 
-            _memory.WriteWord(parseBufferAddr + 1 + (iWord * 4), dictWordAddr);
-            _memory.WriteByte(parseBufferAddr + 1 + (iWord * 4) + 2, nWordLetters);
-            _memory.WriteByte(parseBufferAddr + 1 + (iWord * 4) + 3, (byte)wordStart);
+            _memory.WriteWord(parseBufferAddr + 2 + (iWord * 4), dictWordAddr);
+            _memory.WriteByte(parseBufferAddr + 2 + (iWord * 4) + 2, nWordLetters);
+            _memory.WriteByte(parseBufferAddr + 2 + (iWord * 4) + 3, (byte)(wordStart + 2));
         }
 
         private MemWord SearchDict(string word)

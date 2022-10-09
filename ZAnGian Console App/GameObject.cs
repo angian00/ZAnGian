@@ -132,6 +132,42 @@ namespace ZAnGian
         /**
          * As per spec 12.4
          */
+        public MemWord GetPropertyAddress(ushort targetPropId)
+        {
+            MemWord propAddr = _memory.ReadWord(_propPAddr);
+
+            //skip shortname
+            ushort propLen = _memory.ReadByte(propAddr).Value;
+            propAddr += propLen * 2 + 1;
+
+            while (true)
+            {
+                MemByte sizeByte = _memory.ReadByte(propAddr);
+                propAddr++;
+
+                if (sizeByte == 0x00)
+                    return null;
+
+                propLen = ((sizeByte >> 5) + 1).Value;
+                ushort propId = (sizeByte & 0b00011111).Value;
+                if (propId == targetPropId)
+                {
+                    return propAddr;
+                }
+
+                propAddr += propLen;
+            }
+        }
+
+        public static MemByte GetPropertyLength(ZMemory memory, MemWord propAddr)
+        {
+            MemByte sizeByte = memory.ReadByte(propAddr - 1);
+            Debug.Assert(sizeByte != 0x00);
+
+            return ((sizeByte >> 5) + 1);
+        }
+
+        //TODO: refactor using GetPropertyAddress
         public MemValue GetPropertyValue(ushort targetPropId)
         {
             MemWord propAddr = _memory.ReadWord(_propPAddr);

@@ -52,7 +52,7 @@ namespace ZAnGian
             byte[] memData = _memory.Data;
 
             //while (true)
-            for (int iInstr = 0; iInstr < 1000; iInstr++)
+            for (int iInstr = 0; iInstr < 10000; iInstr++)
             {
                 _logger.All($"sp={_pc.Value} [{_pc}]: {StringUtils.ByteToBinaryString(_memory.ReadByte(_pc).Value)}");
 
@@ -143,21 +143,27 @@ namespace ZAnGian
                         break;
                 }
 
-                MemValue[] operands = ReadOperands(nOps, operandTypes);
-                if (!UsesIndirectRefs(isVAR, nOps, opcode))
+                MemValue[] operands = ReadOperands(operandTypes);
+                if (UsesIndirectRefs(isVAR, nOps, opcode))
+                {
+                    RunIndirectRefOpCode(isVAR, opcode, nOps, operandTypes, operands);
+                }
+                else
+                {
                     DereferenceVariables(operandTypes, ref operands);
-
-                RunOpCode(isVAR, opcode, nOps, operandTypes, operands);
+                    RunOpCode(isVAR, opcode, nOps, operands);
+                }
+                   
             }
         }
 
 
-        private MemValue[] ReadOperands(byte nOps, OperandType[] operandTypes)
+        private MemValue[] ReadOperands(OperandType[] operandTypes)
         {
             MemValue[] operands = new MemValue[4];
 
 
-            for (int iOp = 0; iOp < nOps; iOp++)
+            for (int iOp = 0; iOp < 4; iOp++)
             {
                 switch (operandTypes[iOp])
                 {
@@ -174,7 +180,6 @@ namespace ZAnGian
                         _pc++;
                         break;
                     default:
-                        Debug.Assert(false, "Should never be reached");
                         break;
                 }
             }
@@ -209,7 +214,72 @@ namespace ZAnGian
             }
         }
 
-        private void RunOpCode(bool isVAR, byte opcode, byte nOps, OperandType[] operandTypes, MemValue[] operands)
+        private void RunIndirectRefOpCode(bool isVAR, byte opcode, byte nOps, OperandType[] operandTypes, MemValue[] operands)
+        {
+            string opCodeStr = (isVAR ? "VAR" : $"{nOps}OP") + $":0x{opcode:X}";
+            _logger.All($"RunOpCode [{opCodeStr}]");
+
+            if (isVAR)
+            {
+                if (opcode == 0x09)
+                    //OpcodePull(nOps, operandTypes, operands);
+                    throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+
+                else
+                    Debug.Assert(false, $"This opcode should NOT have reference arguments: {opCodeStr}");
+            }
+            else
+            {
+                switch (nOps)
+                {
+                    case 1:
+                        switch (opcode)
+                        {
+                            case 0x05:
+                                OpcodeInc(nOps, operandTypes, operands);
+                                break;
+                            case 0x06:
+                                OpcodeDec(nOps, operandTypes, operands);
+                                break;
+                            case 0x0E:
+                                //OpcodeLoad(nOps, operandTypes, operands);
+                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                                break;
+                            default:
+                                Debug.Assert(false, $"This opcode should NOT have reference arguments: {opCodeStr}");
+                                break;
+                        }
+
+                        break;
+
+                    case 2:
+                        switch (opcode)
+                        {
+                            case 0x04:
+                                //OpCodeDecChk(nOps, operandTypes, operands);
+                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                                break;
+                            case 0x05:
+                                OpcodeIncChk(nOps, operandTypes, operands);
+                                break;
+                            case 0x0D:
+                                OpcodeStore(nOps, operandTypes, operands);
+                                break;
+                            default:
+                                Debug.Assert(false, $"This opcode should NOT have reference arguments: {opCodeStr}");
+                                break;
+                        }
+
+                        break;
+
+                    default:
+                        Debug.Assert(false, $"This opcode should NOT have reference arguments: {opCodeStr}");
+                        break;
+                }
+            }
+        }
+
+        private void RunOpCode(bool isVAR, byte opcode, byte nOps, MemValue[] operands)
         {
             string opCodeStr = (isVAR ? "VAR" : $"{nOps}OP") + $":0x{opcode:X}";
             _logger.All($"RunOpCode [{opCodeStr}]");
@@ -270,6 +340,10 @@ namespace ZAnGian
                                 OpcodePrint();
                                 break;
 
+                            case 0x03:
+                                OpcodePrintRet();
+                                break;
+
                             case 0x09:
                                 OpcodePop();
                                 break;
@@ -303,12 +377,16 @@ namespace ZAnGian
                                 OpcodeGetParent(operands);
                                 break;
 
+                            case 0x04:
+                                OpcodeGetPropLen(operands);
+                                break;
+
                             case 0x05:
-                                OpcodeInc(operands);
+                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
                                 break;
 
                             case 0x06:
-                                OpcodeDec(operands);
+                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
                                 break;
 
                             case 0x07:
@@ -317,6 +395,10 @@ namespace ZAnGian
 
                             case 0x08:
                                 throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
+
+                            case 0x09:
+                                OpcodeRemoveObj(operands);
+                                break;
 
                             case 0x0A:
                                 OpcodePrintObj(operands);
@@ -332,6 +414,10 @@ namespace ZAnGian
 
                             case 0x0D:
                                 OpcodePrintPAddr(operands);
+                                break;
+
+                            case 0x0E:
+                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
                                 break;
 
                             case 0x0F:
@@ -362,8 +448,12 @@ namespace ZAnGian
                                 OpcodeJG(operands);
                                 break;
 
+                            case 0x04:
+                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
+                                break;
+
                             case 0x05:
-                                OpcodeIncChk(operands);
+                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
                                 break;
 
                             case 0x06:
@@ -388,7 +478,7 @@ namespace ZAnGian
                                 break;
 
                             case 0x0D:
-                                OpcodeStore(operands);
+                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
                                 break;
 
                             case 0x0E:
@@ -407,6 +497,30 @@ namespace ZAnGian
                                 OpcodeGetProp(operands);
                                 break;
 
+                            case 0x12:
+                                OpcodeGetPropAddr(operands);
+                                break;
+
+                            case 0x13:
+                                //OpcodeGetNextProp(operands);
+                                throw new NotImplementedException();
+                                break;
+
+                            case 0x14:
+                                OpcodeAdd(operands);
+                                break;
+
+                            case 0x15:
+                                OpcodeSub(operands);
+                                break;
+
+                            case 0x16:
+                                OpcodeMul(operands);
+                                break;
+
+                            case 0x17:
+                                OpcodeDiv(operands);
+                                break;
 
                             case 0x18:
                                 OpcodeMod(operands);
@@ -436,4 +550,5 @@ namespace ZAnGian
             }
         }
     }
+
 }
