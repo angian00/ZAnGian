@@ -244,6 +244,7 @@ namespace ZAnGian
 
             this.SiblingId = targetParent.ChildId;
             targetParent.ChildId = this.Id;
+            this.ParentId = targetParentId;
         }
     }
 

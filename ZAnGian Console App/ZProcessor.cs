@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace ZAnGian
@@ -144,16 +145,10 @@ namespace ZAnGian
                 }
 
                 MemValue[] operands = ReadOperands(operandTypes);
-                if (UsesIndirectRefs(isVAR, nOps, opcode))
-                {
-                    RunIndirectRefOpCode(isVAR, opcode, nOps, operandTypes, operands);
-                }
-                else
-                {
+                if (!UsesIndirectRefs(isVAR, nOps, opcode))
                     DereferenceVariables(operandTypes, ref operands);
-                    RunOpCode(isVAR, opcode, nOps, operands);
-                }
-                   
+                    
+                RunOpCode(isVAR, opcode, nOps, operandTypes, operands);
             }
         }
 
@@ -214,72 +209,7 @@ namespace ZAnGian
             }
         }
 
-        private void RunIndirectRefOpCode(bool isVAR, byte opcode, byte nOps, OperandType[] operandTypes, MemValue[] operands)
-        {
-            string opCodeStr = (isVAR ? "VAR" : $"{nOps}OP") + $":0x{opcode:X}";
-            _logger.All($"RunOpCode [{opCodeStr}]");
-
-            if (isVAR)
-            {
-                if (opcode == 0x09)
-                    //OpcodePull(nOps, operandTypes, operands);
-                    throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
-
-                else
-                    Debug.Assert(false, $"This opcode should NOT have reference arguments: {opCodeStr}");
-            }
-            else
-            {
-                switch (nOps)
-                {
-                    case 1:
-                        switch (opcode)
-                        {
-                            case 0x05:
-                                OpcodeInc(nOps, operandTypes, operands);
-                                break;
-                            case 0x06:
-                                OpcodeDec(nOps, operandTypes, operands);
-                                break;
-                            case 0x0E:
-                                //OpcodeLoad(nOps, operandTypes, operands);
-                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
-                                break;
-                            default:
-                                Debug.Assert(false, $"This opcode should NOT have reference arguments: {opCodeStr}");
-                                break;
-                        }
-
-                        break;
-
-                    case 2:
-                        switch (opcode)
-                        {
-                            case 0x04:
-                                //OpCodeDecChk(nOps, operandTypes, operands);
-                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
-                                break;
-                            case 0x05:
-                                OpcodeIncChk(nOps, operandTypes, operands);
-                                break;
-                            case 0x0D:
-                                OpcodeStore(nOps, operandTypes, operands);
-                                break;
-                            default:
-                                Debug.Assert(false, $"This opcode should NOT have reference arguments: {opCodeStr}");
-                                break;
-                        }
-
-                        break;
-
-                    default:
-                        Debug.Assert(false, $"This opcode should NOT have reference arguments: {opCodeStr}");
-                        break;
-                }
-            }
-        }
-
-        private void RunOpCode(bool isVAR, byte opcode, byte nOps, MemValue[] operands)
+        private void RunOpCode(bool isVAR, byte opcode, byte nOps, OperandType[] operandTypes, MemValue[] operands)
         {
             string opCodeStr = (isVAR ? "VAR" : $"{nOps}OP") + $":0x{opcode:X}";
             _logger.All($"RunOpCode [{opCodeStr}]");
@@ -315,6 +245,10 @@ namespace ZAnGian
                     case 0x07:
                         OpcodeRandom(nOps, operands);
                         break;
+
+                    case 0x09:
+                        //OpcodePull(nOps, operandTypes, operands);
+                        throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
 
                     default:
                         throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
@@ -382,11 +316,10 @@ namespace ZAnGian
                                 break;
 
                             case 0x05:
-                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
+                                OpcodeInc(operandTypes, operands);
                                 break;
-
                             case 0x06:
-                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
+                                OpcodeDec(operandTypes, operands);
                                 break;
 
                             case 0x07:
@@ -417,7 +350,8 @@ namespace ZAnGian
                                 break;
 
                             case 0x0E:
-                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
+                                //OpcodeLoad(operandTypes, operands);
+                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
                                 break;
 
                             case 0x0F:
@@ -437,7 +371,7 @@ namespace ZAnGian
                                 throw new ArgumentException($"Invalid opcode: {opCodeStr}");
 
                             case 0x01:
-                                OpcodeJE(operands);
+                                OpcodeJE(operandTypes, operands);
                                 break;
 
                             case 0x02:
@@ -449,11 +383,12 @@ namespace ZAnGian
                                 break;
 
                             case 0x04:
-                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
+                                //OpCodeDecChk(operandTypes, operands);
+                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
                                 break;
 
                             case 0x05:
-                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
+                                OpcodeIncChk(operandTypes, operands);
                                 break;
 
                             case 0x06:
@@ -478,7 +413,7 @@ namespace ZAnGian
                                 break;
 
                             case 0x0D:
-                                Debug.Assert(false, $"This opcode should have reference arguments: {opCodeStr}");
+                                OpcodeStore(operandTypes, operands);
                                 break;
 
                             case 0x0E:

@@ -180,7 +180,7 @@ namespace ZAnGian
         //--- 1OP -----------------------------------------
         //-------------------------------------------------
 
-        private void OpcodeDec(int nOps, OperandType[] operandTypes, MemValue[] operands)
+        private void OpcodeDec(OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"DEC {operands[0]}");
 
@@ -254,7 +254,7 @@ namespace ZAnGian
         }
 
 
-        private void OpcodeInc(int nOps, OperandType[] operandTypes, MemValue[] operands)
+        private void OpcodeInc(OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"INC {operands[0]}");
 
@@ -435,7 +435,7 @@ namespace ZAnGian
             WriteVariable(storeVar, pAddr);
         }
 
-        private void OpcodeIncChk(int nOps, OperandType[] operandTypes, MemValue[] operands)
+        private void OpcodeIncChk(OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"INC_CHK {operands[0]} {operands[1]}");
 
@@ -470,11 +470,21 @@ namespace ZAnGian
             obj.AttachToParent(destId);
         }
 
-        private void OpcodeJE(MemValue[] operands)
+        private void OpcodeJE(OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"JE {operands[0]} {operands[1]}");
 
-            Branch(operands[0].FullValue == operands[1].FullValue);
+            //JE is strange, it has up to 4 operands
+            bool condition = false;
+            for (int i = 1; i < operandTypes.Length; i++)
+            {
+                if (operandTypes[i] == OperandType.Omitted)
+                    break;
+                else
+                    condition = (condition || (operands[0].FullValue == operands[i].FullValue));
+            }
+
+            Branch(condition);
         }
 
         private void OpcodeJIn(MemValue[] operands)
@@ -574,7 +584,7 @@ namespace ZAnGian
             obj.SetAttribute(iAttr);
         }
 
-        private void OpcodeStore(int nOps, OperandType[] operandTypes, MemValue[] operands)
+        private void OpcodeStore(OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"STORE {operands[0]} {operands[1]}");
 
