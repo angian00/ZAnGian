@@ -52,8 +52,8 @@ namespace ZAnGian
         {
             byte[] memData = _memory.Data;
 
-            //while (true)
-            for (int iInstr = 0; iInstr < 10000; iInstr++)
+            while (true)
+            //for (int iInstr = 0; iInstr < 10000; iInstr++)
             {
                 _logger.All($"sp={_pc.Value} [{_pc}]: {StringUtils.ByteToBinaryString(_memory.ReadByte(_pc).Value)}");
 
@@ -278,12 +278,44 @@ namespace ZAnGian
                                 OpcodePrintRet();
                                 break;
 
+                            case 0x04:
+                                OpcodeNop();
+                                break;
+
+                            case 0x05:
+                                //OpcodeSave(); //TODO
+                                break;
+
+                            case 0x06:
+                                //OpcodeRestore(); //TODO
+                                break;
+
+                            case 0x07:
+                                //OpcodeRestart(); //TODO
+                                break;
+
+                            case 0x08:
+                                //OpcodeRetPopped(); //TODO
+                                break;
+
                             case 0x09:
                                 OpcodePop();
                                 break;
 
+                            case 0x0A:
+                                OpcodeQuit();
+                                break;
+
                             case 0x0B:
                                 OpcodeNewLine();
+                                break;
+
+                            case 0x0C:
+                                //OpcodeShowStatus(); //TODO
+                                break;
+
+                            case 0x0D:
+                                //OpcodeVerify(); //TODO
                                 break;
 
                             case 0x0E:
@@ -299,6 +331,10 @@ namespace ZAnGian
                     case 1:
                         switch (opcode)
                         {
+                            case 0x00:
+                                OpcodeJZ(operands);
+                                break;
+
                             case 0x01:
                                 OpcodeGetSibling(operands);
                                 break;
@@ -350,8 +386,7 @@ namespace ZAnGian
                                 break;
 
                             case 0x0E:
-                                //OpcodeLoad(operandTypes, operands);
-                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                                OpcodeLoad(operandTypes, operands);
                                 break;
 
                             case 0x0F:
@@ -395,10 +430,17 @@ namespace ZAnGian
                                 OpcodeJIn(operands);
                                 break;
 
+                            case 0x07:
+                                OpcodeTest(operands);
+                                break;
+
+                            case 0x08:
+                                OpcodeOr(operands);
+                                break;
+
                             case 0x09:
                                 OpcodeAnd(operands);
                                 break;
-
 
                             case 0x0A:
                                 OpcodeTestAttr(operands);

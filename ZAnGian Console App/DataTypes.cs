@@ -231,6 +231,10 @@ namespace ZAnGian
         {
             return new MemWord(v._value | bitMask);
         }
+        public static MemWord operator |(MemWord v1, MemWord v2)
+        {
+            return new MemWord(v1._value | v2._value);
+        }
         public static MemWord operator ^(MemWord v, uint bitMask)
         {
             return new MemWord(v._value ^ bitMask);

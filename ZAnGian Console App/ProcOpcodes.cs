@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ZAnGian
 {
@@ -133,6 +134,12 @@ namespace ZAnGian
             _screen.Print("\n");
         }
 
+        private void OpcodeNop()
+        {
+            _logger.Debug("NOP");
+            //does nothing, as expected
+        }
+
         private void OpcodePop()
         {
             _logger.Debug("POP");
@@ -161,6 +168,13 @@ namespace ZAnGian
             _screen.Print(msg);
             _screen.Print("\n");
             ReturnRoutine(MemWord.FromBool(true));
+        }
+
+        private void OpcodeQuit()
+        {
+            _logger.Debug("QUIT");
+
+            Environment.Exit(0);
         }
 
         private void OpcodeRFalse()
@@ -301,6 +315,29 @@ namespace ZAnGian
             _pc += targetOffset - 2;
         }
 
+
+        private void OpcodeJZ(MemValue[] operands)
+        {
+            _logger.Debug($"JZ {operands[0]}");
+
+            Branch(operands[0].FullValue == 0x00);
+        }
+
+
+        private void OpcodeLoad(OperandType[] operandTypes, MemValue[] operands)
+        {
+            _logger.Debug($"INC {operands[0]}");
+
+            //Debug.Assert(operandTypes[0] == OperandType.Variable);
+            GameVariableId sourceVarId = ((MemByte)operands[0]).Value;
+
+            MemWord varValue = ReadVariable(sourceVarId);
+
+            GameVariableId targetVarId = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            WriteVariable(targetVarId, varValue);
+        }
 
         private void OpcodeNot(MemValue[] operands)
         {
@@ -599,6 +636,19 @@ namespace ZAnGian
             WriteVariable(varId, MemWord.FromSignedValue(a * b));
         }
 
+        private void OpcodeOr(MemValue[] operands)
+        {
+            _logger.Debug($"OR {operands[0]} {operands[1]}");
+
+            MemWord a = new MemWord(operands[0].FullValue);
+            MemWord b = new MemWord(operands[1].FullValue);
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            WriteVariable(storeVar, a | b);
+        }
+
         private void OpcodeSetAttr(MemValue[] operands)
         {
             _logger.Debug($"SET_ATTR {operands[0]} {operands[1]}");
@@ -637,6 +687,16 @@ namespace ZAnGian
             _pc++;
 
             WriteVariable(varId, MemWord.FromSignedValue(a - b));
+        }
+
+        private void OpcodeTest(MemValue[] operands)
+        {
+            _logger.Debug($"TEST {operands[0]} {operands[1]}");
+
+            MemWord a = new MemWord(operands[0].FullValue);
+            MemWord b = new MemWord(operands[1].FullValue);
+
+            Branch((a & b) == b);
         }
 
         private void OpcodeTestAttr(MemValue[] operands)
