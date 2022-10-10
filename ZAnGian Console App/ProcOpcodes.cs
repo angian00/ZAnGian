@@ -195,29 +195,47 @@ namespace ZAnGian
         private void OpcodeGetChild(MemValue[] operands)
         {
             _logger.Debug($"GET_CHILD {operands[0]}");
+            byte retValue;
 
             GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            if (objId == 0x00)
+            {
+                retValue = 0x00;
+            }
+            else
+            {
+                GameObject obj = _memory.FindObject(objId);
+                retValue = obj.ChildId;
+            }
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
             _pc++;
 
-            WriteVariable(storeVar, obj.ChildId);
+            WriteVariable(storeVar, retValue);
 
-            Branch(obj.ChildId != 0x00);
+            Branch(retValue != 0x00);
         }
 
         private void OpcodeGetParent(MemValue[] operands)
         {
             _logger.Debug($"GET_PARENT {operands[0]}");
+            byte retValue;
 
             GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            if (objId == 0x00)
+            {
+                retValue = 0x00;
+            }
+            else
+            {
+                GameObject obj = _memory.FindObject(objId);
+                retValue = obj.ParentId;
+            }
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
             _pc++;
 
-            WriteVariable(storeVar, obj.ParentId);
+            WriteVariable(storeVar, retValue);
         }
 
         private void OpcodeGetPropLen(MemValue[] operands)
@@ -241,16 +259,25 @@ namespace ZAnGian
         private void OpcodeGetSibling(MemValue[] operands)
         {
             _logger.Debug($"GET_SIBLING {operands[0]}");
+            byte retValue;
 
             GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            if (objId == 0x00)
+            {
+                retValue = 0x00;
+            }
+            else
+            {
+                GameObject obj = _memory.FindObject(objId);
+                retValue = obj.SiblingId;
+            }
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
             _pc++;
 
-            WriteVariable(storeVar, obj.SiblingId);
+            WriteVariable(storeVar, retValue);
 
-            Branch(obj.SiblingId != 0x00);
+            Branch(retValue != 0x00);
         }
 
 
