@@ -117,9 +117,8 @@ namespace ZAnGian
 
         public void ClearAttribute(ushort iAttr)
         {
-            int iFlag = 31 - iAttr;
-            int iAttrByte = iFlag / 4;
-            int iAttrBit = iFlag % 4;
+            int iAttrByte = iAttr / 8;
+            int iAttrBit = (31 - iAttr) % 8;
 
             MemByte attrByte = _memory.ReadByte(_attrAddr + iAttrByte);
 
