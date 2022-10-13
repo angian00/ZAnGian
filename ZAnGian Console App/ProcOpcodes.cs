@@ -119,7 +119,7 @@ namespace ZAnGian
             _logger.Debug($"STOREW {operands[0]} {operands[1]}");
             ushort arr = operands[0].FullValue;
             ushort index = operands[1].FullValue;
-            ushort value = (byte)operands[2].FullValue;
+            ushort value = operands[2].FullValue;
 
             _memory.WriteWord(new MemWord(arr + index), new MemWord(value));
         }
