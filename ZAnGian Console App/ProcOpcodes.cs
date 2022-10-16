@@ -101,27 +101,29 @@ namespace ZAnGian
             MemWord parseBufferAddr = new MemWord(operands[1].FullValue);
 
             string inputStr = _input.ReadLine();
-            _logger.All($"input string: {inputStr}");
+            //_logger.All($"input string: {inputStr}");
             _parser.ParseInput(inputStr, textBufferAddr, parseBufferAddr);
         }
 
 
         private void OpcodeStoreB(int nOps, MemValue[] operands)
         {
-            _logger.Debug($"STOREB {operands[0]} {operands[1]}");
             ushort arr = operands[0].FullValue;
             ushort index = operands[1].FullValue;
-            byte value = (byte)operands[2].FullValue;
+            MemByte value = new MemByte(operands[2].FullValue);
+            _logger.Debug($"STOREB {operands[0]} {operands[1]} {value}");
+
             _memory.WriteByte(new MemWord(arr + index), value);
         }
+
         private void OpcodeStoreW(int nOps, MemValue[] operands)
         {
-            _logger.Debug($"STOREW {operands[0]} {operands[1]}");
             ushort arr = operands[0].FullValue;
             ushort index = operands[1].FullValue;
-            ushort value = operands[2].FullValue;
+            MemWord value = new MemWord(operands[2].FullValue);
+            _logger.Debug($"STOREW {operands[0]} {operands[1]} {value}");
 
-            _memory.WriteWord(new MemWord(arr + index), new MemWord(value));
+            _memory.WriteWord(new MemWord(arr + 2 * index), value);
         }
 
         //-------------------------------------------------
@@ -665,7 +667,6 @@ namespace ZAnGian
         {
             _logger.Debug($"STORE {operands[0]} {operands[1]}");
 
-            //Debug.Assert(operandTypes[0] == OperandType.Variable);
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
             ushort value;

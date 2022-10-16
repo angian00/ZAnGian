@@ -20,41 +20,41 @@ namespace ZAnGian
 
         public byte[] Data;
 
-        public  int ZVersion;
+        public int ZVersion;
         private MemWord BaseHighMem;
-        public  MemWord StartPC { get; private set; }
-        public  MemWord DictionaryLoc { get; private set; }
+        public MemWord StartPC { get; private set; }
+        public MemWord DictionaryLoc { get; private set; }
         private MemWord ObjectTableLoc;
-        public  MemWord GlobalVarTableLoc;
+        public MemWord GlobalVarTableLoc;
         private MemWord BaseStaticMem;
         private MemWord AbbrTableLoc;
         private MemWord FileLen;
         private MemWord Checksum;
         private MemWord Revision;
-        
+
 
         public ZMemory(byte[] rawData)
         {
             this.Data = rawData;
 
-            this.ZVersion          = rawData[0x00];
+            this.ZVersion = rawData[0x00];
 
-            byte flags1            = rawData[0x01]; //TODO: use flags
+            byte flags1 = rawData[0x01]; //TODO: use flags
 
-            this.BaseHighMem       = ReadWord(0x04);
-            this.StartPC           = ReadWord(0x06);
-            this.DictionaryLoc     = ReadWord(0x08);
-            this.ObjectTableLoc    = ReadWord(0x0A);
+            this.BaseHighMem = ReadWord(0x04);
+            this.StartPC = ReadWord(0x06);
+            this.DictionaryLoc = ReadWord(0x08);
+            this.ObjectTableLoc = ReadWord(0x0A);
             this.GlobalVarTableLoc = ReadWord(0x0C);
             //this.BaseStaticMem     = rawData[0x0E];
-            this.BaseStaticMem     = ReadWord(0x0E);
+            this.BaseStaticMem = ReadWord(0x0E);
 
-            byte flags2            = rawData[0x10]; //TODO: use flags
+            byte flags2 = rawData[0x10]; //TODO: use flags
 
-            this.AbbrTableLoc      = ReadWord(0x18);
-            this.FileLen           = ReadWord(0x1A) * 2; //as per spec
-            this.Checksum          = ReadWord(0x1C);
-            this.Revision          = ReadWord(0x32);
+            this.AbbrTableLoc = ReadWord(0x18);
+            this.FileLen = ReadWord(0x1A) * 2; //as per spec
+            this.Checksum = ReadWord(0x1C);
+            this.Revision = ReadWord(0x32);
         }
 
 
@@ -86,7 +86,7 @@ namespace ZAnGian
         private void WalkObjNode(GameObjectId objId, ushort currDepth, GameObjDelegate objDelegate)
         {
             GameObject currObj = FindObject(objId);
-            
+
             objDelegate(currObj, currDepth);
 
             if (currObj.ChildId != 0x00)
@@ -123,13 +123,13 @@ namespace ZAnGian
             if (iObj == 0x00)
                 return null;
 
-            MemWord memPos = (MemWord)(ObjectTableLoc + 2 * GameObject.MAX_N_OBJ_PROPS + (iObj-1)*OBJ_ENTRY_SIZE);
+            MemWord memPos = (MemWord)(ObjectTableLoc + 2 * GameObject.MAX_N_OBJ_PROPS + (iObj - 1) * OBJ_ENTRY_SIZE);
             //Console.WriteLine($"DEBUG: FindObject[{memPos}]");
 
             GameObject gameObj = new GameObject(iObj, memPos, this);
-            
+
             //ReadProperties(ref gameObj, propAddr);
-            
+
             return gameObj;
 
         }
@@ -137,7 +137,7 @@ namespace ZAnGian
         public MemWord GetDefaultPropertyValue(ushort propId)
         {
             //return ReadWord(ObjectTableLoc + propId * 2);
-            return ReadWord(ObjectTableLoc + (propId-1) * 2);
+            return ReadWord(ObjectTableLoc + (propId - 1) * 2);
         }
 
 
@@ -154,17 +154,20 @@ namespace ZAnGian
 
         public void WriteByte(int targetAddr, byte value)
         {
+            if (!IsWritable(targetAddr))
+                throw new ArgumentException("Illegal write on memory");
+
             Data[targetAddr] = value;
         }
 
         public void WriteByte(MemWord targetAddr, MemByte memByte)
         {
-            Data[targetAddr.Value] = memByte.Value;
+            WriteByte(targetAddr.Value, memByte.Value);
         }
 
         public void WriteByte(MemWord targetAddr, byte value)
         {
-            Data[targetAddr.Value] = value;
+            WriteByte(targetAddr.Value, value);
         }
 
         public MemWord ReadWord(ushort targetAddr)
@@ -179,6 +182,9 @@ namespace ZAnGian
 
         public void WriteWord(ushort targetAddr, MemWord data)
         {
+            if (!IsWritable(targetAddr) || !IsWritable(targetAddr + 1))
+                throw new ArgumentException("Illegal write on memory");
+
             Data[targetAddr] = data.HighByte;
             Data[targetAddr + 1] = data.LowByte;
         }
@@ -213,7 +219,12 @@ namespace ZAnGian
 
             for (int i = 0; i < nBytes; i++)
             {
-                Data[targetAddr + nBytes - i - 1] = (byte) (val & 0xff);
+                ushort writeIndex = (ushort) (targetAddr + nBytes - i - 1);
+
+                if (!IsWritable(writeIndex))
+                    throw new ArgumentException("Illegal write on memory");
+
+                Data[writeIndex] = (byte)(val & 0xff);
                 val >>= 8;
             }
         }
@@ -226,6 +237,12 @@ namespace ZAnGian
         public void WriteDWord(MemWord targetAddr, uint val)
         {
             WriteNBytes(4, targetAddr.Value, val);
+        }
+
+
+        private bool IsWritable(int targetAddr)
+        {
+            return (targetAddr < BaseStaticMem.Value);
         }
     }
 }

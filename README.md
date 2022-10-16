@@ -6,8 +6,7 @@ A Z-Machine implementation.
 
 
 ## TODO
-- JE with > 2 args
-
+	
 
 ## Resources
 Z-Machine Specification: 

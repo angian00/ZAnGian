@@ -173,6 +173,15 @@ namespace ZAnGian
         {
             return (v1._value != v2);
         }
+        public static bool operator <(MemWord v1, MemWord v2)
+        {
+            return v1._value < v2._value;
+        }
+        public static bool operator >(MemWord v1, MemWord v2)
+        {
+            return v1._value > v2._value;
+        }
+
         public static MemWord operator ++(MemWord v)
         {
             v._value += 1;
