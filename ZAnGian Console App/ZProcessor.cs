@@ -230,6 +230,10 @@ namespace ZAnGian
                         OpcodeStoreB(nOps, operands);
                         break;
 
+                    case 0x03:
+                        OpcodePutProp(nOps, operands);
+                        break;
+
                     case 0x04:
                         OpcodeSRead(nOps, operands);
                         break;
@@ -246,12 +250,37 @@ namespace ZAnGian
                         OpcodeRandom(nOps, operands);
                         break;
 
+                    case 0x08:
+                        OpcodePush(nOps, operands);
+                        break;
+
                     case 0x09:
-                        //OpcodePull(nOps, operandTypes, operands);
+                        OpcodePull(nOps, operands);
+                        break;
+
+                    case 0x0A:
+                        OpcodeSplitWindow(nOps, operands);
                         throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                        break;
+
+                    case 0x0B:
+                        OpcodeSetWindow(nOps, operands);
+                        throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                        break;
+
+                    case 0x13:
+                        OpcodeOutputStream(nOps, operands);
+                        throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                        break;
+
+                    case 0x14:
+                        OpcodeInputStream(nOps, operands);
+                        throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                        break;
 
                     default:
-                        throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                        //throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                        throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
                 }
 
             }
@@ -283,19 +312,19 @@ namespace ZAnGian
                                 break;
 
                             case 0x05:
-                                //OpcodeSave(); //TODO
+                                OpcodeSave();
                                 break;
 
                             case 0x06:
-                                //OpcodeRestore(); //TODO
+                                OpcodeRestore();
                                 break;
 
                             case 0x07:
-                                //OpcodeRestart(); //TODO
+                                OpcodeRestart();
                                 break;
 
                             case 0x08:
-                                //OpcodeRetPopped(); //TODO
+                                OpcodeRetPopped();
                                 break;
 
                             case 0x09:
@@ -311,11 +340,11 @@ namespace ZAnGian
                                 break;
 
                             case 0x0C:
-                                //OpcodeShowStatus(); //TODO
+                                OpcodeShowStatus();
                                 break;
 
                             case 0x0D:
-                                //OpcodeVerify(); //TODO
+                                OpcodeVerify();
                                 break;
 
                             case 0x0E:
@@ -323,7 +352,8 @@ namespace ZAnGian
                                 throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
 
                             default:
-                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                                Debug.Assert(false, "Unreachable if all opcodes are accounted for");
+                                break;
                         }
 
                         break;
@@ -394,7 +424,8 @@ namespace ZAnGian
                                 break;
 
                             default:
-                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                                Debug.Assert(false, "Unreachable if all opcodes are accounted for");
+                                break;
                         }
 
                         break;
@@ -418,8 +449,7 @@ namespace ZAnGian
                                 break;
 
                             case 0x04:
-                                //OpCodeDecChk(operandTypes, operands);
-                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                                OpcodeDecChk(operandTypes, operands);
                                 break;
 
                             case 0x05:
@@ -479,8 +509,7 @@ namespace ZAnGian
                                 break;
 
                             case 0x13:
-                                //OpcodeGetNextProp(operands);
-                                throw new NotImplementedException();
+                                OpcodeGetNextProp(operands);
                                 break;
 
                             case 0x14:
@@ -515,13 +544,14 @@ namespace ZAnGian
                                 throw new ArgumentException($"Invalid opcode: {opCodeStr}");
 
                             default:
-                                throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                                Debug.Assert(false, "Unreachable if all opcodes are accounted for");
+                                break;
                         }
 
                         break;
 
                     default:
-                        throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                        Debug.Assert(false, "Unreachable if all opcodes are accounted for");
                         break;
                 }
             }

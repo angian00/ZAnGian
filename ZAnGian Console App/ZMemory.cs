@@ -31,6 +31,8 @@ namespace ZAnGian
         private MemWord FileLen;
         private MemWord Checksum;
         private MemWord Revision;
+        public MemByte Flags1;
+        public MemByte Flags2;
 
 
         public ZMemory(byte[] rawData)
@@ -39,17 +41,16 @@ namespace ZAnGian
 
             this.ZVersion = rawData[0x00];
 
-            byte flags1 = rawData[0x01]; //TODO: use flags
+            this.Flags1 = ReadByte(0x01);
 
             this.BaseHighMem = ReadWord(0x04);
             this.StartPC = ReadWord(0x06);
             this.DictionaryLoc = ReadWord(0x08);
             this.ObjectTableLoc = ReadWord(0x0A);
             this.GlobalVarTableLoc = ReadWord(0x0C);
-            //this.BaseStaticMem     = rawData[0x0E];
             this.BaseStaticMem = ReadWord(0x0E);
 
-            byte flags2 = rawData[0x10]; //TODO: use flags
+            this.Flags2 = ReadByte(0x10);
 
             this.AbbrTableLoc = ReadWord(0x18);
             this.FileLen = ReadWord(0x1A) * 2; //as per spec
@@ -192,6 +193,11 @@ namespace ZAnGian
         public void WriteWord(MemWord targetAddr, MemWord data)
         {
             WriteWord(targetAddr.Value, data);
+        }
+
+        public void WriteWord(MemWord targetAddr, ushort data)
+        {
+            WriteWord(targetAddr.Value, new MemWord(data));
         }
 
         public uint ReadNBytes(int nBytes, uint targetAddr)

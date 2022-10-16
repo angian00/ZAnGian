@@ -1,9 +1,27 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
+using System.Reflection.Emit;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 
 namespace ZAnGian
 {
+    public record StatusInfo
+    {
+        public bool IsScoreGame;
+        public string CurrObjName;
+
+        public short Score;
+        public ushort Turns;
+
+        public ushort Hours;
+        public ushort Minutes;
+
+    }
+
     public partial class ZProcessor
     {
         /** Branching logic, as per spec 4.7
@@ -61,7 +79,7 @@ namespace ZAnGian
         {
             RoutineData currRoutine = _stack.PopRoutine();
             WriteVariable(currRoutine.ReturnVariableId, value);
-            
+
             _pc = currRoutine.ReturnAddress;
         }
 
@@ -140,6 +158,34 @@ namespace ZAnGian
             }
 
             return sb.ToString();
+        }
+
+        private StatusInfo GetStatusInfo()
+        {
+            // as per spec 8.2
+            StatusInfo statusInfo = new StatusInfo();
+
+            statusInfo.IsScoreGame = ((_memory.ZVersion < 3) || ((_memory.Flags1 & 0b00000010) != 0b00000010));
+            
+            GameObjectId currObjId = (GameObjectId)ReadVariable(0x10).FullValue;
+            Debug.Assert(currObjId != 0x00);
+
+            GameObject currObj = _memory.FindObject(currObjId);
+            statusInfo.CurrObjName = currObj.ShortName;
+
+            if (statusInfo.IsScoreGame)
+            {
+                statusInfo.Score = ReadVariable(0x11).SignedValue;
+                statusInfo.Turns = ReadVariable(0x12).FullValue;
+            }
+            else
+            {
+                //time game
+                statusInfo.Hours = ReadVariable(0x11).FullValue;
+                statusInfo.Minutes = ReadVariable(0x12).FullValue;
+            }
+
+            return statusInfo;
         }
     }
 }

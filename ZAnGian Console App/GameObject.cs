@@ -164,41 +164,81 @@ namespace ZAnGian
             return ((sizeByte >> 5) + 1);
         }
 
-        //TODO: refactor using GetPropertyAddress
         public MemValue GetPropertyValue(ushort targetPropId)
         {
-            MemWord propAddr = _memory.ReadWord(_propPAddr);
-            
-            //skip shortname
-            ushort propLen = _memory.ReadByte(propAddr).Value;
-            propAddr += propLen*2 + 1;
+            MemWord propAddr = GetPropertyAddress(targetPropId);
+            if (propAddr == null)
+                return null;
 
-            while (true)
+            MemByte sizeByte = _memory.ReadByte(propAddr - 1); //go back 1 to size header
+            ushort propLen = ((sizeByte >> 5) + 1).Value;
+
+            if (propLen == 1)
+                return _memory.ReadByte(propAddr);
+            else if (propLen == 2)
+                return _memory.ReadWord(propAddr);
+            else
+                throw new ArgumentException("GetPropertyValue called when propLen > 2");
+        }
+
+        public void PutPropertyValue(ushort targetPropId, MemValue propValue)
+        {
+            MemWord propAddr = GetPropertyAddress(targetPropId);
+            if (propAddr == null)
+                throw new ArgumentException("PutPropertyValue called for nonexistent property");
+
+            MemByte sizeByte = _memory.ReadByte(propAddr - 1); //go back 1 to size header
+            ushort propLen = ((sizeByte >> 5) + 1).Value;
+
+            if (propLen == 1)
             {
-                MemByte sizeByte = _memory.ReadByte(propAddr);
-                propAddr++;
-
-                if (sizeByte == 0x00)
-                    return null;
-
-                propLen = ((sizeByte >> 5) + 1).Value;
-                ushort propId = (sizeByte & 0b00011111).Value;
-                if (propId == targetPropId)
-                {
-                    if (propLen == 1)
-                        return _memory.ReadByte(propAddr);
-                    else if (propLen == 2)
-                        return _memory.ReadWord(propAddr);
-                    else
-                        throw new NotImplementedException();
-                }
-
-                propAddr += propLen;
+                //as per spec, when len == 1 save only least significant byte
+                _memory.WriteByte(propAddr, (byte)(propValue.FullValue & 0xff));
             }
+            else if (propLen == 2)
+            {
+                _memory.WriteWord(propAddr, propValue.FullValue);
+            }
+            else
+                throw new ArgumentException("PutPropertyValue called when propLen > 2");
+        }
+        
+        
+        public MemWord GetNextPropertyId(ushort startPropId)
+        {
+            MemWord propAddr;
+            MemByte sizeByte;
+
+
+            if (startPropId == 0x00)
+            {
+                //get the first property
+                propAddr = _memory.ReadWord(_propPAddr);
+            }
+            else
+            {
+                //start from the given startPropId
+                propAddr = GetPropertyAddress(startPropId);
+                if (propAddr == null)
+                    throw new ArgumentException("GetNextPropertyId called for nonexistent property"); //as per spec
+
+                sizeByte = _memory.ReadByte(propAddr - 1); //go back 1 to size header
+                ushort propLen = ((sizeByte >> 5) + 1).Value;
+
+                propAddr += propLen; //skip to next property
+            }
+
+
+            sizeByte = _memory.ReadByte(propAddr);
+            if (sizeByte == 0x00)
+                return null;
+
+            ushort targetPropId = (sizeByte & 0b00011111).Value;
+            return new MemWord(targetPropId);
         }
 
 
-        
+
         public void DetachFromParent()
         {
             if (this.ParentId == 0x00)

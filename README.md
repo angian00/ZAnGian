@@ -1,5 +1,6 @@
 # ZAnGian
 A Z-Machine implementation.
+Supports version 3 files.
 
 
 ## Milestones

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
 
 namespace ZAnGian
 {
@@ -15,6 +12,11 @@ namespace ZAnGian
         public string ReadLine()
         {
             return Console.ReadLine();
+        }
+
+        public string GetFilePath()
+        {
+            string inputStr = Console.ReadLine();
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Reflection.Emit;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -40,13 +41,23 @@ namespace ZAnGian
 
             for (byte i = 1; i < nOps; i++)
             {
-                //CHECK: push argument operands[i+1] into first local variables?
                 newRoutine.SetLocalVariable(i, operands[i].FullValue);
             }
 
 
             _stack.PushRoutine(newRoutine);
             //TODO manage case (routineAddr == 0x00) as per opcode spec 
+        }
+
+
+        private void OpcodeInputStream(int nOps, MemValue[] operands)
+        {
+            throw new NotImplementedException($"Unimplemented opcode: INPUT_STREAM"); //TODO
+        }
+
+        private void OpcodeOutputStream(int nOps, MemValue[] operands)
+        {
+            throw new NotImplementedException($"Unimplemented opcode: OUTPUT_STREAM"); //TODO
         }
 
 
@@ -67,6 +78,41 @@ namespace ZAnGian
 
             _screen.Print($"{val}");
         }
+
+        private void OpcodePull(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"PULL {FormatOperands(nOps, operands)}");
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            MemWord value = _stack.PopValue();
+            WriteVariable(storeVar, value);
+        }
+
+        private void OpcodePush(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"PUSH {FormatOperands(nOps, operands)}");
+            MemWord value = new MemWord(operands[0].FullValue);
+
+            _stack.PushValue(value);
+        }
+
+
+        private void OpcodePutProp(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"PUT_PROP {FormatOperands(nOps, operands)}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            ushort propId = operands[1].FullValue;
+
+            MemValue propValue = operands[2];
+
+            obj.PutPropertyValue(propId, propValue);
+        }
+
 
         private void OpcodeRandom(int nOps, MemValue[] operands)
         {
@@ -92,11 +138,21 @@ namespace ZAnGian
             WriteVariable(storeVar, value);
         }
 
+        private void OpcodeSetWindow(int nOps, MemValue[] operands)
+        {
+            throw new NotImplementedException($"Unimplemented opcode: SET_WINDOW"); //TODO
+        }
+
+        private void OpcodeSplitWindow(int nOps, MemValue[] operands)
+        {
+            throw new NotImplementedException($"Unimplemented opcode: SPLIT_WINDOW"); //TODO
+        }
+
         private void OpcodeSRead(int nOps, MemValue[] operands)
         {
             _logger.Debug($"SREAD {operands[0]} {operands[1]}");
 
-            //PrintStatusLine(); //TODO
+            _screen.PrintStatusLine(GetStatusInfo());
             MemWord textBufferAddr = new MemWord(operands[0].FullValue);
             MemWord parseBufferAddr = new MemWord(operands[1].FullValue);
 
@@ -179,6 +235,22 @@ namespace ZAnGian
             Environment.Exit(0);
         }
 
+        private void OpcodeRestart()
+        {
+            throw new NotImplementedException($"Unimplemented opcode: RESTART"); //TODO
+        }
+
+        private void OpcodeRestore()
+        {
+            throw new NotImplementedException($"Unimplemented opcode: RESTORE"); //TODO
+        }
+
+        private void OpcodeRetPopped()
+        {
+            _logger.Debug("RET_POPPED");
+            ReturnRoutine(_stack.PopValue());
+        }
+
         private void OpcodeRFalse()
         {
             _logger.Debug("RFALSE");
@@ -189,6 +261,27 @@ namespace ZAnGian
         {
             _logger.Debug("RTRUE");
             ReturnRoutine(MemWord.FromBool(true));
+        }
+
+        private void OpcodeSave()
+        {
+            throw new NotImplementedException($"Unimplemented opcode: SAVE"); //TODO
+            /*
+            string filepath = _input.GetFilePath();
+
+            if (filepath == null)
+                return;
+            */
+        }
+
+        private void OpcodeShowStatus()
+        {
+            _screen.PrintStatusLine(GetStatusInfo());
+        }
+
+        private void OpcodeVerify()
+        {
+            //TODO: implement OpcodeVerify?
         }
 
 
@@ -444,6 +537,29 @@ namespace ZAnGian
             obj.ClearAttribute(iAttr);
         }
 
+
+        private void OpcodeDecChk(OperandType[] operandTypes, MemValue[] operands)
+        {
+            _logger.Debug($"DEC_CHK {operands[0]} {operands[1]}");
+
+            Debug.Assert(operandTypes[0] == OperandType.Variable);
+            GameVariableId varId = ((MemByte)operands[0]).Value;
+
+            MemWord cmpValue;
+            if (operandTypes[1] == OperandType.Variable)
+                cmpValue = ReadVariable(((MemByte)operands[1]).Value);
+            else
+                cmpValue = new MemWord(operands[1].FullValue);
+
+
+            MemWord varValue = ReadVariable(varId);
+            varValue--;
+            WriteVariable(varId, varValue);
+
+            Branch(varValue.SignedValue < cmpValue.SignedValue);
+        }
+
+
         private void OpcodeDiv(MemValue[] operands)
         {
             _logger.Debug($"DIV {operands[0]} {operands[1]}");
@@ -461,6 +577,30 @@ namespace ZAnGian
             {
                 WriteVariable(varId, MemWord.FromSignedValue(a / b));
             }
+        }
+
+        private void OpcodeGetNextProp(MemValue[] operands)
+        {
+            _logger.Debug($"GET_NEXT_PROP {operands[0]} {operands[1]}");
+
+            GameObjectId objId = (GameObjectId)operands[0].FullValue;
+            GameObject obj = _memory.FindObject(objId);
+
+            ushort propId = operands[1].FullValue;
+
+            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            if (propId == 0x00)
+            {
+
+            }
+
+            MemWord value = obj.GetNextPropertyId(propId);
+            if (value == null)
+                value = new MemWord(0x00);
+
+            WriteVariable(storeVar, value);
         }
 
         private void OpcodeGetProp(MemValue[] operands)
