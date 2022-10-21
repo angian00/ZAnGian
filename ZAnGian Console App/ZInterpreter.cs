@@ -8,13 +8,7 @@ namespace ZAnGian
     {
         private static Logger _logger = Logger.GetInstance();
 
-
-
-        public ZInterpreter()
-        {
-            _logger.Configure(LogLevel.DEBUG, "zangian.log");
-            //_logger.Configure(LogLevel.ALL, "zangian.log");
-        }
+        private string _gamePath;
 
 
         public void StartGame(string gamePath)
@@ -25,6 +19,7 @@ namespace ZAnGian
 
             _logger.Info($"Loading gamefile [{gamePath}]");
 
+            _gamePath = gamePath;
             rawData = File.ReadAllBytes(gamePath);
             memory = new ZMemory(rawData);
 
@@ -43,8 +38,19 @@ namespace ZAnGian
             //});
             //-------------
 
-            processor = new ZProcessor(memory);
+            processor = new ZProcessor(this, memory);
             processor.Run();
+        }
+
+        public void RestartGame()
+        {
+            StartGame(_gamePath);
+        }
+
+        public ZMemory GetInitialMemoryState()
+        {
+            byte[] rawData = File.ReadAllBytes(_gamePath);
+            return new ZMemory(rawData);
         }
     }
 }

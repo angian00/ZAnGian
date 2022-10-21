@@ -28,7 +28,7 @@ namespace ZAnGian
         }
 
 
-
+        private ZInterpreter _interpreter;
         private ZMemory _memory;
         private MemWord _pc; //Program Counter
         private ZStack _stack;
@@ -37,15 +37,17 @@ namespace ZAnGian
         private ZScreen _screen;
         private ZInput _input;
 
-        public ZProcessor(ZMemory memory)
+
+        public ZProcessor(ZInterpreter interpreter, ZMemory memory)
         {
+            _interpreter = interpreter;
             _memory = memory;
             _pc = memory.StartPC;
             _stack = new ZStack();
             _parser = new ZParser(_memory);
             _rndGen = new Random();
             _screen = new ZScreen();
-            _input = new ZInput();
+            _input = new ZInput(_screen);
         }
 
         public void Run()

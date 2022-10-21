@@ -33,12 +33,19 @@ namespace ZAnGian
         */
         private void Branch(bool condition)
         {
+            MemWord targetOffset;
+            bool branchOnTrue;
+
+            ComputeBranchOffset(out targetOffset, out branchOnTrue);
+            BranchOnCondition(condition, targetOffset, branchOnTrue);
+        }
+        
+        private void ComputeBranchOffset(out MemWord targetOffset, out bool branchOnTrue)
+        {
             MemByte addr1 = _memory.ReadByte(_pc);
-            bool branchOnTrue = ((addr1.Value & 0b10000000) == 0b10000000);
+            branchOnTrue = ((addr1.Value & 0b10000000) == 0b10000000);
             bool addrOn1Byte = ((addr1.Value & 0b01000000) == 0b01000000);
 
-
-            MemWord targetOffset;
             if (addrOn1Byte)
             {
                 targetOffset = new MemWord(addr1.Value & 0b00111111);
@@ -49,11 +56,13 @@ namespace ZAnGian
                 targetOffset = new MemWord(((addr1.Value & 0b00111111) << 8) + _memory.ReadByte(_pc + 1).Value);
                 _pc += 2;
             }
+        }
 
+        private void BranchOnCondition(bool condition, MemWord targetOffset, bool branchOnTrue)
+        {
             if ((condition && branchOnTrue) || (!condition && !branchOnTrue))
             {
                 //jump
-
                 if (targetOffset.SignedValue == 0x00)
                 {
                     ReturnRoutine(MemWord.FromBool(false));
@@ -67,7 +76,6 @@ namespace ZAnGian
                     _pc += targetOffset.SignedValue - 2;
                 }
             }
-
         }
 
         private void ReturnRoutine(ushort value)

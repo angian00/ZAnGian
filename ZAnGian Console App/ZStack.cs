@@ -6,13 +6,32 @@ namespace ZAnGian
 {
     public class ZStack
     {
+        private static Logger _logger = Logger.GetInstance();
+
         private Stack<RoutineData> _routineStack = new();
 
         private RoutineData CurrRoutineData { get => _routineStack.Peek(); }
+        public Stack<RoutineData> RoutineStack { get => _routineStack; }
 
-        public ZStack()
+        public ZStack(bool addFirstFrame = true)
         {
-            _routineStack.Push(new RoutineData());
+            if (addFirstFrame)
+                _routineStack.Push(new RoutineData());
+        }
+
+
+        public void Dump()
+        {
+            _logger.Debug($"-- routineStack");
+            _logger.Debug("<Top>");
+            int i = 0;
+            foreach (RoutineData rData in _routineStack)
+            {
+                _logger.Debug($"\troutineStack item #{i}");
+                rData.Dump();
+                i++;
+            }
+            _logger.Debug("<Bottom>");
         }
 
         public void PushValue(MemWord value)
@@ -53,17 +72,49 @@ namespace ZAnGian
 
             return CurrRoutineData.GetLocalVariable(varId);
         }
+
     }
 
 
     public class RoutineData
     {
+        private static Logger _logger = Logger.GetInstance();
+
         private List<MemWord> _localVariables = new();
         private Stack<MemWord> _valueStack = new();
+
+        public List<MemWord> LocalVariables { get => _localVariables; }
+        public Stack<MemWord> ValueStack { get => _valueStack; }
 
         public MemWord ReturnAddress;
         public GameVariableId ReturnVariableId;
 
+
+        public void Dump()
+        {
+            _logger.Debug($"\t-- ReturnAddress: {ReturnAddress}");
+            _logger.Debug($"\t-- ReturnVariableId: {ReturnVariableId}");
+
+            _logger.Debug("\t-- localVariables");
+            int i=0;
+            foreach (MemWord localVar in _localVariables)
+            {
+                _logger.Debug($"\t\tlocalVar #{i}");
+                _logger.Debug($"\t\t{localVar}");
+                i++;
+            }
+
+            _logger.Debug("\t-- valueStack");
+            _logger.Debug("\t<Top>");
+            i=0;
+            foreach (MemWord value in _valueStack)
+            {
+                _logger.Debug($"\t\tvalueStack item #{i}");
+                _logger.Debug($"\t\t{value}");
+                i++;
+            }
+            _logger.Debug("\t<Bottom>");
+        }
 
         public void AddLocalVariable(MemWord value)
         {

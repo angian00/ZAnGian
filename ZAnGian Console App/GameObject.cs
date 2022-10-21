@@ -67,8 +67,6 @@ namespace ZAnGian
             _siblingAddr = baseAddr + 5;
             _childAddr = baseAddr + 6;
             _propPAddr = baseAddr + 7;
-
-            //TODO: properties
         }
 
         public void Dump()
@@ -78,13 +76,6 @@ namespace ZAnGian
             _logger.Debug($"\t  Sibling [{SiblingId}]");
             _logger.Debug($"\t  Child [{ChildId}]");
             _logger.Debug($"\t  Attributes [0x{Attributes:x8}]");
-            /*
-            _logger.Debug($"\t  Properties");
-            List<byte> sortedPKeys = new List<byte>(Properties.Keys);
-            sortedPKeys.Sort();
-            foreach (byte pId in sortedPKeys)
-                Console.WriteLine($"\t\t  {Properties[pId]}");
-            */
         }
 
 
@@ -247,7 +238,6 @@ namespace ZAnGian
                 return;
             }
 
-            //CHECK
             GameObject oldParent = _memory.FindObject(this.ParentId);
             if (oldParent.ChildId == this.Id)
                 oldParent.ChildId = this.SiblingId;

@@ -10,7 +10,7 @@ namespace ZAnGian
     public delegate void GameObjDelegate(GameObject gameObj, int depth);
 
 
-    public class ZMemory
+    public class ZMemory : ICloneable
     {
         private static Logger _logger = Logger.GetInstance();
 
@@ -26,11 +26,13 @@ namespace ZAnGian
         public MemWord DictionaryLoc { get; private set; }
         private MemWord ObjectTableLoc;
         public MemWord GlobalVarTableLoc;
-        private MemWord BaseStaticMem;
+        public MemWord BaseStaticMem { get; private set; }
         private MemWord AbbrTableLoc;
         private MemWord FileLen;
-        private MemWord Checksum;
-        private MemWord Revision;
+        public MemWord GameRelease { get; private init; }
+        public string GameSerialNum { get; private init; }
+        public MemWord Checksum { get; private init; }
+        public MemWord StdRevision { get; private init; }
         public MemByte Flags1;
         public MemByte Flags2;
 
@@ -43,6 +45,8 @@ namespace ZAnGian
 
             this.Flags1 = ReadByte(0x01);
 
+            this.GameRelease = ReadWord(0x02); //CHECK
+
             this.BaseHighMem = ReadWord(0x04);
             this.StartPC = ReadWord(0x06);
             this.DictionaryLoc = ReadWord(0x08);
@@ -51,18 +55,19 @@ namespace ZAnGian
             this.BaseStaticMem = ReadWord(0x0E);
 
             this.Flags2 = ReadByte(0x10);
+            this.GameSerialNum = StringUtils.BytesToAsciiString(Data, 0x12, 6);
 
             this.AbbrTableLoc = ReadWord(0x18);
             this.FileLen = ReadWord(0x1A) * 2; //as per spec
             this.Checksum = ReadWord(0x1C);
-            this.Revision = ReadWord(0x32);
+            this.StdRevision = ReadWord(0x32);
         }
 
 
         public void DumpMetadata()
         {
             _logger.Info($"version: {ZVersion}");
-            _logger.Info($"revision: {Revision}");
+            _logger.Info($"revision: {StdRevision}");
             _logger.Debug("");
             _logger.Debug($"baseHighMem: {BaseHighMem.ToDecimalString()} [{BaseHighMem}]");
             _logger.Debug($"baseStaticMem: {BaseStaticMem.ToDecimalString()} [{BaseStaticMem}]");
@@ -78,6 +83,21 @@ namespace ZAnGian
             _logger.Debug("");
         }
 
+        public object Clone()
+        {
+            var newMem = (ZMemory)MemberwiseClone();
+
+            return newMem;
+        }
+
+        public void DumpDynamicMem()
+        {
+            _logger.Debug("-- Dynamic memory image");
+            for (UInt16 addr=0; addr < BaseStaticMem.Value; addr++)
+            {
+                _logger.Debug($"[0x{addr:x4}] 0x{Data[addr]:x2}");
+            }
+        }
 
         public void WalkObjTree(GameObjectId startObjId, GameObjDelegate objDelegate)
         {

@@ -237,12 +237,43 @@ namespace ZAnGian
 
         private void OpcodeRestart()
         {
-            throw new NotImplementedException($"Unimplemented opcode: RESTART"); //TODO
+            _logger.Debug("RESTART");
+
+            _interpreter.RestartGame();
         }
 
         private void OpcodeRestore()
         {
-            throw new NotImplementedException($"Unimplemented opcode: RESTORE"); //TODO
+            _logger.Debug("RESTORE");
+
+            string filepath = _input.GetFilePath(true);
+
+            bool resOk = true;
+            if (filepath != null)
+            {
+                GameSave savedGame = new GameSave();
+                resOk = savedGame.LoadFile(filepath);
+                if (resOk)
+                {
+                    ZMemory initialMemState = _interpreter.GetInitialMemoryState();
+                    resOk = savedGame.Restore(ref _memory, ref _stack, ref _pc, initialMemState);
+                    
+                    //NB: parser needs to refresh its copy of memory too
+                    _parser = new ZParser(_memory);
+
+                    //DEBUG
+                    _logger.Debug("After restore");
+                    _logger.Debug($"pc={_pc}");
+                    //_stack.Dump();
+                    //_memory.DumpDynamicMem();
+                    //
+                }
+            }
+
+            // NB: as per spec, "the branch is never actually made,
+            // since either the game has successfully picked up again from where it was saved,
+            // or it failed to load the save game file."
+            //Branch(resOk);
         }
 
         private void OpcodeRetPopped()
@@ -265,13 +296,28 @@ namespace ZAnGian
 
         private void OpcodeSave()
         {
-            throw new NotImplementedException($"Unimplemented opcode: SAVE"); //TODO
-            /*
-            string filepath = _input.GetFilePath();
+            _logger.Debug("SAVE");
+
+            string filepath = _input.GetFilePath(false);
 
             if (filepath == null)
                 return;
-            */
+
+            MemWord targetOffset;
+            bool branchOnTrue;
+            //ComputeBranchOffset(out targetOffset, out branchOnTrue);
+            Branch(true); //FIXME
+
+            _logger.Debug("Before save");
+            _logger.Debug($"pc={_pc}");
+            //_stack.Dump();
+            //_memory.DumpDynamicMem();
+
+            ZMemory initialMemState = _interpreter.GetInitialMemoryState();
+            GameSave gameSave = new GameSave(_memory, _stack, _pc, initialMemState);
+            bool savedOk = gameSave.SaveFile(filepath);
+            
+            //BranchOnCondition(savedOk, targetOffset, branchOnTrue); //CHECK
         }
 
         private void OpcodeShowStatus()

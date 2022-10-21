@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ZAnGian
 {
@@ -14,6 +15,26 @@ namespace ZAnGian
 
             return result;
         }
+
+        public static string BytesToAsciiString(byte[] buf, uint start, uint len)
+        {
+            return System.Text.Encoding.ASCII.GetString(buf, (int)start, (int)len).Split("\u0000")[0];
+        }
+
+
+        
+        public static void AsciiStringToBytes(string msg, byte[] buf, uint start, uint len)
+        {
+            byte[] decoded = System.Text.Encoding.ASCII.GetBytes(msg);
+
+            Debug.Assert(decoded.Length >= len);
+
+            for (int i = 0; i < len; i++)
+            {
+                buf[start + i] = decoded[i];
+            }
+        }
+
     }
 
     public class CollectionUtils
