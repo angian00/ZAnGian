@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Reflection.Emit;
-using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ZAnGian
 {
@@ -17,7 +14,7 @@ namespace ZAnGian
             _logger.Debug($"CALL {FormatOperands(nOps, operands)}");
 
             MemWord packedAddr = (MemWord)operands[0];
-            MemWord routineAddr = packedAddr * 2;
+            MemWord routineAddr = UnpackAddress(packedAddr);
 
             RoutineData newRoutine = new RoutineData();
 
@@ -103,8 +100,9 @@ namespace ZAnGian
         {
             _logger.Debug($"PUT_PROP {FormatOperands(nOps, operands)}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            GameObjectId objId = operands[0];
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             ushort propId = operands[1].FullValue;
 
@@ -303,8 +301,8 @@ namespace ZAnGian
             if (filepath == null)
                 return;
 
-            MemWord targetOffset;
-            bool branchOnTrue;
+            //MemWord targetOffset;
+            //bool branchOnTrue;
             //ComputeBranchOffset(out targetOffset, out branchOnTrue);
             Branch(true); //FIXME
 
@@ -350,17 +348,18 @@ namespace ZAnGian
         private void OpcodeGetChild(MemValue[] operands)
         {
             _logger.Debug($"GET_CHILD {operands[0]}");
-            byte retValue;
+            UInt16 retValue;
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            if (objId == 0x00)
+            GameObjectId objId = operands[0];
+            if (objId.FullValue == 0x00)
             {
                 retValue = 0x00;
             }
             else
             {
-                GameObject obj = _memory.FindObject(objId);
-                retValue = obj.ChildId;
+                GameObject? obj = _memory.FindObject(objId);
+                Debug.Assert(obj != null);
+                retValue = obj.ChildId.FullValue;
             }
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
@@ -374,17 +373,18 @@ namespace ZAnGian
         private void OpcodeGetParent(MemValue[] operands)
         {
             _logger.Debug($"GET_PARENT {operands[0]}");
-            byte retValue;
+            UInt16 retValue;
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            if (objId == 0x00)
+            GameObjectId objId = (GameObjectId)operands[0];
+            if (objId.FullValue == 0x00)
             {
                 retValue = 0x00;
             }
             else
             {
-                GameObject obj = _memory.FindObject(objId);
-                retValue = obj.ParentId;
+                GameObject? obj = _memory.FindObject(objId);
+                Debug.Assert(obj != null);
+                retValue = obj.ParentId.FullValue;
             }
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
@@ -414,17 +414,18 @@ namespace ZAnGian
         private void OpcodeGetSibling(MemValue[] operands)
         {
             _logger.Debug($"GET_SIBLING {operands[0]}");
-            byte retValue;
+            UInt16 retValue;
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            if (objId == 0x00)
+            GameObjectId objId = (GameObjectId)operands[0];
+            if (objId.FullValue == 0x00)
             {
                 retValue = 0x00;
             }
             else
             {
-                GameObject obj = _memory.FindObject(objId);
-                retValue = obj.SiblingId;
+                GameObject? obj = _memory.FindObject(objId);
+                Debug.Assert(obj != null);
+                retValue = obj.SiblingId.FullValue;
             }
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
@@ -508,8 +509,9 @@ namespace ZAnGian
         {
             _logger.Debug($"PRINT_OBJ {operands[0]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            GameObjectId objId = operands[0];
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             _screen.Print(obj.ShortName);
         }
@@ -529,8 +531,9 @@ namespace ZAnGian
         {
             _logger.Debug($"REMOVE_OBJ {operands[0]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            GameObjectId objId = operands[0];
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             obj.DetachFromParent();
         }
@@ -575,8 +578,9 @@ namespace ZAnGian
         {
             _logger.Debug($"CLEAR_ATTR {operands[0]} {operands[1]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            GameObjectId objId = operands[0];
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             ushort iAttr = operands[1].FullValue;
 
@@ -629,8 +633,9 @@ namespace ZAnGian
         {
             _logger.Debug($"GET_NEXT_PROP {operands[0]} {operands[1]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            GameObjectId objId = operands[0];
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             ushort propId = operands[1].FullValue;
 
@@ -639,10 +644,10 @@ namespace ZAnGian
 
             if (propId == 0x00)
             {
-
+                //FIXME
             }
 
-            MemWord value = obj.GetNextPropertyId(propId);
+            MemWord? value = obj.GetNextPropertyId(propId);
             if (value == null)
                 value = new MemWord(0x00);
 
@@ -653,15 +658,16 @@ namespace ZAnGian
         {
             _logger.Debug($"GET_PROP {operands[0]} {operands[1]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            GameObjectId objId = operands[0];
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             ushort propId = operands[1].FullValue;
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
             _pc++;
 
-            MemValue pValue = obj.GetPropertyValue(propId);
+            MemValue? pValue = obj.GetPropertyValue(propId);
             if (pValue == null)
                 pValue = _memory.GetDefaultPropertyValue(propId);
 
@@ -672,15 +678,16 @@ namespace ZAnGian
         {
             _logger.Debug($"GET_PROP_ADDR {operands[0]} {operands[1]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            GameObjectId objId = operands[0];
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             ushort propId = operands[1].FullValue;
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
             _pc++;
 
-            MemWord pAddr = obj.GetPropertyAddress(propId);
+            MemWord? pAddr = obj.GetPropertyAddress(propId);
             if (pAddr == null)
                 pAddr = new MemWord(0x00);
 
@@ -713,10 +720,11 @@ namespace ZAnGian
         {
             _logger.Debug($"INSERT_OBJ {operands[0]} {operands[1]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObjectId destId = (GameObjectId)operands[1].FullValue;
+            GameObjectId objId = operands[0];
+            GameObjectId destId = operands[1];
 
-            GameObject obj = _memory.FindObject(objId);
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             obj.DetachFromParent();
             obj.AttachToParent(destId);
@@ -743,10 +751,10 @@ namespace ZAnGian
         {
             _logger.Debug($"JIN {operands[0]} {operands[1]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObjectId parentId = (GameObjectId)operands[1].FullValue;
+            GameObjectId objId = operands[0];
+            GameObjectId parentId = operands[1];
 
-            GameObject obj = _memory.FindObject(objId);
+            GameObject? obj = _memory.FindObject(objId);
 
             Branch(obj != null && obj.ParentId == parentId);
         }
@@ -841,8 +849,9 @@ namespace ZAnGian
         {
             _logger.Debug($"SET_ATTR {operands[0]} {operands[1]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            GameObjectId objId = operands[0];
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             ushort iAttr = operands[1].FullValue;
 
@@ -890,8 +899,9 @@ namespace ZAnGian
         {
             _logger.Debug($"TEST_ATTR {operands[0]} {operands[1]}");
 
-            GameObjectId objId = (GameObjectId)operands[0].FullValue;
-            GameObject obj = _memory.FindObject(objId);
+            GameObjectId objId = operands[0];
+            GameObject? obj = _memory.FindObject(objId);
+            Debug.Assert(obj != null);
 
             ushort iAttr = operands[1].FullValue;
 

@@ -263,22 +263,22 @@ namespace ZAnGian
                     case 0x0A:
                         OpcodeSplitWindow(nOps, operands);
                         throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
-                        break;
+                        //break;
 
                     case 0x0B:
                         OpcodeSetWindow(nOps, operands);
                         throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
-                        break;
+                        //break;
 
                     case 0x13:
                         OpcodeOutputStream(nOps, operands);
                         throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
-                        break;
+                        //break;
 
                     case 0x14:
                         OpcodeInputStream(nOps, operands);
                         throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
-                        break;
+                        //break;
 
                     default:
                         //throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");

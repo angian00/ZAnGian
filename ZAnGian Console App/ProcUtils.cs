@@ -12,7 +12,7 @@ namespace ZAnGian
     public record StatusInfo
     {
         public bool IsScoreGame;
-        public string CurrObjName;
+        public string? CurrObjName;
 
         public short Score;
         public ushort Turns;
@@ -168,6 +168,19 @@ namespace ZAnGian
             return sb.ToString();
         }
 
+        private MemWord UnpackAddress(MemWord packedAddr)
+        {
+            if (_memory.ZVersion == 3)
+                return packedAddr * 2;
+            else if (_memory.ZVersion == 5)
+                return packedAddr * 4;
+            else
+            {
+                Debug.Assert(false, "Unreachable");
+                return null;
+            }
+        }
+
         private StatusInfo GetStatusInfo()
         {
             // as per spec 8.2
@@ -175,10 +188,12 @@ namespace ZAnGian
 
             statusInfo.IsScoreGame = ((_memory.ZVersion < 3) || ((_memory.Flags1 & 0b00000010) != 0b00000010));
             
-            GameObjectId currObjId = (GameObjectId)ReadVariable(0x10).FullValue;
-            Debug.Assert(currObjId != 0x00);
+            GameObjectId currObjId = ReadVariable(0x10);
+            Debug.Assert(currObjId.FullValue != 0x00);
 
-            GameObject currObj = _memory.FindObject(currObjId);
+            GameObject? currObj = _memory.FindObject(currObjId);
+            Debug.Assert(currObj != null);
+            
             statusInfo.CurrObjName = currObj.ShortName;
 
             if (statusInfo.IsScoreGame)

@@ -5,8 +5,6 @@ namespace ZAnGian
 {
     public class GameObject
     {
-        public const int MAX_N_OBJ_PROPS = 31;
-
         private static Logger _logger = Logger.GetInstance();
 
 
@@ -18,6 +16,7 @@ namespace ZAnGian
         private readonly MemWord _siblingAddr;
         private readonly MemWord _childAddr;
         private readonly MemWord _propPAddr;
+        private readonly int _nAttrs;
 
 
         public uint Attributes
@@ -28,20 +27,35 @@ namespace ZAnGian
 
         public GameObjectId ParentId
         {
-            get => _memory.ReadByte(_parentAddr).Value;
-            set => _memory.WriteByte(_parentAddr, value);
+            get => (_memory.ZVersion < 5 ? _memory.ReadByte(_parentAddr) : _memory.ReadWord(_parentAddr));
+            set {
+                if (_memory.ZVersion < 5)
+                    _memory.WriteByte(_parentAddr, (byte)value.FullValue);
+                else
+                    _memory.WriteWord(_parentAddr, value.FullValue);
+            }
         }
 
         public GameObjectId SiblingId
         {
-            get => _memory.ReadByte(_siblingAddr).Value;
-            set => _memory.WriteByte(_siblingAddr, value);
+            get => (_memory.ZVersion < 5 ? _memory.ReadByte(_siblingAddr) : _memory.ReadWord(_siblingAddr));
+            set {
+                if (_memory.ZVersion < 5)
+                    _memory.WriteByte(_siblingAddr, (byte)value.FullValue);
+                else
+                    _memory.WriteWord(_siblingAddr, value.FullValue);
+            }
         }
 
         public GameObjectId ChildId
         {
-            get => _memory.ReadByte(_childAddr).Value;
-            set => _memory.WriteByte(_childAddr, value);
+            get => (_memory.ZVersion < 5 ? _memory.ReadByte(_childAddr) : _memory.ReadWord(_siblingAddr));
+            set {
+                if (_memory.ZVersion < 5)
+                    _memory.WriteByte(_childAddr, (byte)value.FullValue);
+                else
+                    _memory.WriteWord(_childAddr, value.FullValue);
+            }
         }
 
         public string ShortName
@@ -63,10 +77,26 @@ namespace ZAnGian
             _memory = memory;
 
             _attrAddr = baseAddr;
-            _parentAddr = baseAddr + 4;
-            _siblingAddr = baseAddr + 5;
-            _childAddr = baseAddr + 6;
-            _propPAddr = baseAddr + 7;
+            if (memory.ZVersion == 3)
+            {
+                _parentAddr = baseAddr + 4;
+                _siblingAddr = baseAddr + 5;
+                _childAddr = baseAddr + 6;
+                _propPAddr = baseAddr + 7;
+                _nAttrs = 32;
+            }
+            else if (memory.ZVersion == 5)
+            {
+                _parentAddr = baseAddr + 6;
+                _siblingAddr = baseAddr + 8;
+                _childAddr = baseAddr + 10;
+                _propPAddr = baseAddr + 12;
+                _nAttrs = 64;
+            }
+            else
+            {
+                Debug.Assert(false, "Unreachable");
+            }
         }
 
         public void Dump()
@@ -88,7 +118,7 @@ namespace ZAnGian
         public bool HasAttribute(ushort iAttr)
         {
             int iAttrByte = iAttr / 8;
-            int iAttrBit = (31 - iAttr) % 8;
+            int iAttrBit = (_nAttrs - iAttr - 1) % 8;
 
             byte attrByte = _memory.ReadByte(_attrAddr + iAttrByte).Value;
 
@@ -98,7 +128,7 @@ namespace ZAnGian
         public void SetAttribute(ushort iAttr)
         {
             int iAttrByte = iAttr / 8;
-            int iAttrBit = (31 - iAttr) % 8;
+            int iAttrBit = (_nAttrs - iAttr - 1) % 8;
 
             MemByte attrByte = _memory.ReadByte(_attrAddr + iAttrByte);
 
@@ -109,7 +139,7 @@ namespace ZAnGian
         public void ClearAttribute(ushort iAttr)
         {
             int iAttrByte = iAttr / 8;
-            int iAttrBit = (31 - iAttr) % 8;
+            int iAttrBit = (_nAttrs - iAttr - 1) % 8;
 
             MemByte attrByte = _memory.ReadByte(_attrAddr + iAttrByte);
 
@@ -120,7 +150,7 @@ namespace ZAnGian
         /**
          * As per spec 12.4
          */
-        public MemWord GetPropertyAddress(ushort targetPropId)
+        public MemWord? GetPropertyAddress(ushort targetPropId)
         {
             MemWord propAddr = _memory.ReadWord(_propPAddr);
 
@@ -155,9 +185,9 @@ namespace ZAnGian
             return ((sizeByte >> 5) + 1);
         }
 
-        public MemValue GetPropertyValue(ushort targetPropId)
+        public MemValue? GetPropertyValue(ushort targetPropId)
         {
-            MemWord propAddr = GetPropertyAddress(targetPropId);
+            MemWord? propAddr = GetPropertyAddress(targetPropId);
             if (propAddr == null)
                 return null;
 
@@ -174,7 +204,7 @@ namespace ZAnGian
 
         public void PutPropertyValue(ushort targetPropId, MemValue propValue)
         {
-            MemWord propAddr = GetPropertyAddress(targetPropId);
+            MemWord? propAddr = GetPropertyAddress(targetPropId);
             if (propAddr == null)
                 throw new ArgumentException("PutPropertyValue called for nonexistent property");
 
@@ -195,9 +225,9 @@ namespace ZAnGian
         }
         
         
-        public MemWord GetNextPropertyId(ushort startPropId)
+        public MemWord? GetNextPropertyId(ushort startPropId)
         {
-            MemWord propAddr;
+            MemWord? propAddr;
             MemByte sizeByte;
 
 
@@ -232,21 +262,23 @@ namespace ZAnGian
 
         public void DetachFromParent()
         {
-            if (this.ParentId == 0x00)
+            if (this.ParentId.FullValue == 0x00)
             {
-                Debug.Assert(this.SiblingId == 0x00, "Object is in inconsistent state");
+                Debug.Assert(this.SiblingId.FullValue == 0x00, "Object is in inconsistent state");
                 return;
             }
 
-            GameObject oldParent = _memory.FindObject(this.ParentId);
+            GameObject? oldParent = _memory.FindObject(this.ParentId);
+            Debug.Assert(oldParent != null);
             if (oldParent.ChildId == this.Id)
                 oldParent.ChildId = this.SiblingId;
             else
             {
                 GameObjectId candSiblingId = oldParent.ChildId;
-                while (candSiblingId != 0x00)
+                while (candSiblingId.FullValue != 0x00)
                 {
-                    GameObject candSibling = _memory.FindObject(candSiblingId);
+                    GameObject? candSibling = _memory.FindObject(candSiblingId);
+                    Debug.Assert(candSibling != null);
                     if (candSibling.SiblingId == this.Id)
                     {
                         candSibling.SiblingId = this.SiblingId;
@@ -259,17 +291,18 @@ namespace ZAnGian
                 }
             }
 
-            this.ParentId = 0x00;
-            this.SiblingId = 0x00;
+            this.ParentId = _memory.MakeObjectId(0x00);
+            this.SiblingId = _memory.MakeObjectId(0x00);
         }
 
 
         public void AttachToParent(GameObjectId targetParentId)
         {
-            Debug.Assert(ParentId == 0x00 && SiblingId == 0x00, 
+            Debug.Assert(ParentId.FullValue == 0x00 && SiblingId.FullValue == 0x00, 
                 "Object must be DetachedFromParent before it can be attached to another parent/sibiling");
 
-            GameObject targetParent = _memory.FindObject(targetParentId);
+            GameObject? targetParent = _memory.FindObject(targetParentId);
+            Debug.Assert(targetParent != null);
 
             this.SiblingId = targetParent.ChildId;
             targetParent.ChildId = this.Id;

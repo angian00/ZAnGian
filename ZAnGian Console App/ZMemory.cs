@@ -1,9 +1,10 @@
-﻿global using GameObjectId = System.Byte;
+﻿global using GameObjectId = ZAnGian.MemValue;
 global using GameVariableId = System.Byte;
 
 
 using System;
 using System.Diagnostics;
+using System.Reflection.Emit;
 
 namespace ZAnGian
 {
@@ -14,8 +15,10 @@ namespace ZAnGian
     {
         private static Logger _logger = Logger.GetInstance();
 
-        public const int MAX_N_OBJS = 255;
-        private const ushort OBJ_ENTRY_SIZE = 9;
+        private readonly int MaxNObjects;
+        private readonly ushort ObjEntrySize;
+        private readonly int MAX_N_OBJ_PROPS;
+
 
 
         public byte[] Data;
@@ -28,7 +31,7 @@ namespace ZAnGian
         public MemWord GlobalVarTableLoc;
         public MemWord BaseStaticMem { get; private set; }
         private MemWord AbbrTableLoc;
-        private MemWord FileLen;
+        private uint FileLen;
         public MemWord GameRelease { get; private init; }
         public string GameSerialNum { get; private init; }
         public MemWord Checksum { get; private init; }
@@ -42,6 +45,9 @@ namespace ZAnGian
             this.Data = rawData;
 
             this.ZVersion = rawData[0x00];
+            if (ZVersion != 3 && ZVersion != 5)
+                throw new NotImplementedException($"Unsupported story file version: {ZVersion}");
+
 
             this.Flags1 = ReadByte(0x01);
 
@@ -58,9 +64,28 @@ namespace ZAnGian
             this.GameSerialNum = StringUtils.BytesToAsciiString(Data, 0x12, 6);
 
             this.AbbrTableLoc = ReadWord(0x18);
-            this.FileLen = ReadWord(0x1A) * 2; //as per spec
+            this.FileLen = ReadWord(0x1A).Value;
+            if (ZVersion == 3)
+            {
+                FileLen *= 2;
+                MaxNObjects = 255;
+                ObjEntrySize = 9;
+                MAX_N_OBJ_PROPS = 31;
+            }
+            else if (ZVersion == 5)
+            {
+                FileLen *= 4;
+                MaxNObjects = 65535;
+                ObjEntrySize = 14;
+                MAX_N_OBJ_PROPS = 63;
+            }
             this.Checksum = ReadWord(0x1C);
             this.StdRevision = ReadWord(0x32);
+
+
+            //specify missing interpreter features
+            this.Flags2 &= 0b11101111; //no undo
+            WriteByte(0x01, Flags2);
         }
 
 
@@ -106,50 +131,50 @@ namespace ZAnGian
 
         private void WalkObjNode(GameObjectId objId, ushort currDepth, GameObjDelegate objDelegate)
         {
-            GameObject currObj = FindObject(objId);
+            GameObject? currObj = FindObject(objId);
+            Debug.Assert(currObj != null);
 
             objDelegate(currObj, currDepth);
 
-            if (currObj.ChildId != 0x00)
+            if (currObj.ChildId.FullValue != 0x00)
                 WalkObjNode(currObj.ChildId, (ushort)(currDepth + 1), objDelegate);
 
-            if (currObj.SiblingId != 0x00)
+            if (currObj.SiblingId.FullValue != 0x00)
                 WalkObjNode(currObj.SiblingId, currDepth, objDelegate);
         }
 
 
         public void ReadObjList()
         {
-            GameObjectId iObj = 1;
+            GameObjectId iObj = MakeObjectId(1);
             bool isLast = false;
 
             while (!isLast)
             {
-                Debug.Assert(iObj <= MAX_N_OBJS);
+                Debug.Assert(iObj.FullValue <= MaxNObjects);
 
-                GameObject obj = FindObject(iObj);
+                GameObject? obj = FindObject(iObj);
+                Debug.Assert(obj != null);
                 obj.Dump();
 
-                iObj++;
+                iObj.next();
 
                 //DEBUG
-                if (iObj >= 10)
+                if (iObj.FullValue >= 10)
                     break;
             }
         }
 
 
-        public GameObject FindObject(GameObjectId iObj)
+        public GameObject? FindObject(GameObjectId iObj)
         {
-            if (iObj == 0x00)
+            if (iObj == null || iObj.FullValue == 0x00)
                 return null;
 
-            MemWord memPos = (MemWord)(ObjectTableLoc + 2 * GameObject.MAX_N_OBJ_PROPS + (iObj - 1) * OBJ_ENTRY_SIZE);
+            MemWord memPos = (MemWord)(ObjectTableLoc + 2 * MAX_N_OBJ_PROPS + (iObj.FullValue - 1) * ObjEntrySize);
             //Console.WriteLine($"DEBUG: FindObject[{memPos}]");
 
             GameObject gameObj = new GameObject(iObj, memPos, this);
-
-            //ReadProperties(ref gameObj, propAddr);
 
             return gameObj;
 
@@ -157,10 +182,16 @@ namespace ZAnGian
 
         public MemWord GetDefaultPropertyValue(ushort propId)
         {
-            //return ReadWord(ObjectTableLoc + propId * 2);
             return ReadWord(ObjectTableLoc + (propId - 1) * 2);
         }
 
+        public GameObjectId MakeObjectId(uint val)
+        {
+            if (ZVersion < 5)
+                return new MemByte(val);
+            else
+                return new MemWord(val);
+        }
 
 
         public MemByte ReadByte(ushort targetAddr)
@@ -179,6 +210,11 @@ namespace ZAnGian
                 throw new ArgumentException("Illegal write on memory");
 
             Data[targetAddr] = value;
+        }
+
+        public void WriteByte(int targetAddr, MemByte memByte)
+        {
+            WriteByte(targetAddr, memByte.Value);
         }
 
         public void WriteByte(MemWord targetAddr, MemByte memByte)
@@ -270,5 +306,6 @@ namespace ZAnGian
         {
             return (targetAddr < BaseStaticMem.Value);
         }
+
     }
 }

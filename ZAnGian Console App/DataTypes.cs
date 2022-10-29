@@ -8,6 +8,7 @@ namespace ZAnGian
     public abstract class MemValue {
         public virtual ushort FullValue { get => ushort.MaxValue; }
         public virtual short SignedValue { get => short.MinValue; }
+        public abstract void next();
     }
 
 
@@ -39,6 +40,17 @@ namespace ZAnGian
             _value = (byte)val;
         }
 
+        public override bool Equals(object? obj)
+        {
+            return obj is MemByte other && _value == other._value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_value);
+        }
+
+
         public override string ToString()
         {
             return $"0x{_value:x2}";
@@ -48,6 +60,12 @@ namespace ZAnGian
         {
             return $"{_value}";
         }
+
+        public override void next()
+        {
+            _value++;
+        }
+
 
         public static bool operator ==(MemByte v1, int v2)
         {
@@ -138,6 +156,16 @@ namespace ZAnGian
             _value = (ushort)val;
         }
 
+        public override bool Equals(object? obj)
+        {
+            return obj is MemWord other && _value == other._value;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(_value);
+        }
+
 
         public static MemWord FromSignedValue(int val)
         {
@@ -164,6 +192,11 @@ namespace ZAnGian
             return $"{_value}";
         }
 
+
+        public override void next()
+        {
+            _value++;
+        }
 
         public static bool operator ==(MemWord v1, int v2)
         {
