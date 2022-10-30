@@ -9,6 +9,28 @@ namespace ZAnGian
         public virtual ushort FullValue { get => ushort.MaxValue; }
         public virtual short SignedValue { get => short.MinValue; }
         public abstract void next();
+
+
+        public static bool operator ==(MemValue? v1, MemValue? v2)
+        {
+            if (v1 is null)
+                return (v2 is null);
+            else if (v2 is null)
+                return false;
+
+            return (v1.FullValue == v2.FullValue);
+        }
+
+        public static bool operator !=(MemValue? v1, MemValue? v2)
+        {
+            if (v1 is null)
+                return (v2 is not null);
+            else if (v2 is null)
+                return true;
+
+            return (v1.FullValue != v2.FullValue);
+        }
+
     }
 
 
@@ -67,7 +89,7 @@ namespace ZAnGian
         }
 
 
-        public static bool operator ==(MemByte v1, MemByte v2)
+        public static bool operator ==(MemByte? v1, MemByte? v2)
         {
             if (v1 is null)
                 return (v2 is null);
@@ -76,14 +98,23 @@ namespace ZAnGian
 
             return (v1._value == v2._value);
         }
-        public static bool operator ==(MemByte v1, int v2)
+        public static bool operator ==(MemByte? v1, int v2)
         {
             if (v1 is null)
                 return false;
 
             return (v1._value == v2);
         }
-        public static bool operator !=(MemByte v1, MemByte v2)
+        public static bool operator ==(MemByte? v1, MemWord? v2)
+        {
+            if (v1 is null)
+                return (v2 is null);
+            else if (v2 is null)
+                return false;
+
+            return (v1.FullValue == v2.FullValue);
+        }
+        public static bool operator !=(MemByte? v1, MemByte? v2)
         {
             if (v1 is null)
                 return (v2 is not null);
@@ -92,12 +123,21 @@ namespace ZAnGian
 
             return (v1._value != v2._value);
         }
-        public static bool operator !=(MemByte v1, int v2)
+        public static bool operator !=(MemByte? v1, int v2)
         {
             if (v1 is null)
                 return true;
 
             return (v1._value != v2);
+        }
+        public static bool operator !=(MemByte? v1, MemWord? v2)
+        {
+            if (v1 is null)
+                return (v2 is not null);
+            else if (v2 is null)
+                return true;
+
+            return (v1.FullValue != v2.FullValue);
         }
         public static MemByte operator +(MemByte v1, MemByte v2)
         {
@@ -222,7 +262,7 @@ namespace ZAnGian
             _value++;
         }
 
-        public static bool operator ==(MemWord v1, MemWord v2)
+        public static bool operator ==(MemWord? v1, MemWord? v2)
         {
             if (v1 is null)
                 return (v2 is null);
@@ -231,14 +271,23 @@ namespace ZAnGian
 
             return (v1._value == v2._value);
         }
-        public static bool operator ==(MemWord v1, int v2)
+        public static bool operator ==(MemWord? v1, MemByte? v2)
+        {
+            if (v1 is null)
+                return (v2 is null);
+            else if (v2 is null)
+                return false;
+
+            return (v1._value == v2.FullValue);
+        }
+        public static bool operator ==(MemWord? v1, int v2)
         {
             if (v1 is null)
                 return false;
 
             return (v1._value == v2);
         }
-        public static bool operator !=(MemWord v1, MemWord v2)
+        public static bool operator !=(MemWord? v1, MemWord? v2)
         {
             if (v1 is null)
                 return v2 is not null;
@@ -247,12 +296,21 @@ namespace ZAnGian
 
             return (v1._value != v2._value);
         }
-        public static bool operator !=(MemWord v1, int v2)
+        public static bool operator !=(MemWord? v1, int v2)
         {
             if (v1 is null)
                 return true;
 
             return (v1._value != v2);
+        }
+        public static bool operator !=(MemWord? v1, MemByte? v2)
+        {
+            if (v1 is null)
+                return (v2 is not null);
+            else if (v2 is null)
+                return true;
+
+            return (v1._value != v2.FullValue);
         }
         public static bool operator <(MemWord v1, MemWord v2)
         {

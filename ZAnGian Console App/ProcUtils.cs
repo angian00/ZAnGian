@@ -33,7 +33,7 @@ namespace ZAnGian
             ComputeBranchOffset(out targetOffset, out branchOnTrue);
             BranchOnCondition(condition, targetOffset, branchOnTrue);
         }
-        
+
         private void ComputeBranchOffset(out MemWord targetOffset, out bool branchOnTrue)
         {
             MemByte addr1 = _memory.ReadByte(_pc);
@@ -81,7 +81,7 @@ namespace ZAnGian
             newRoutine.ReturnAddress = _pc;
 
 
-            if (storeVar != null)
+            if (storeVar != (MemByte)null)
                 newRoutine.ReturnVariableId = storeVar.Value;
             else
                 newRoutine.IgnoreReturnVariable = true;
@@ -109,7 +109,7 @@ namespace ZAnGian
 
             newRoutine.NumArgs = args.Length;
             for (byte i = 0; i < args.Length; i++)
-                newRoutine.SetLocalVariable((byte)(i+1), new MemWord(args[i].FullValue));
+                newRoutine.SetLocalVariable((byte)(i + 1), new MemWord(args[i].FullValue));
 
             _stack.PushRoutine(newRoutine);
             //TODO manage case (routineAddr == 0x00) as per opcode spec 
@@ -175,8 +175,6 @@ namespace ZAnGian
                 _memory.WriteWord(varAddr, value);
             }
         }
-
-
 
         private static OperandType ParseOperandType(byte opTypeBits)
         {

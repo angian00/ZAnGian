@@ -78,7 +78,7 @@ namespace ZAnGian
             if (propAddr == 0x00)
                 pSize = new MemByte(0x00);
             else
-                pSize = GameObject.GetPropertyLength(_memory, propAddr);
+                pSize = _memory.GetPropertyLength(propAddr);
 
             WriteVariable(storeVar, pSize.FullValue);
         }
@@ -204,6 +204,9 @@ namespace ZAnGian
             _logger.Debug($"REMOVE_OBJ {operands[0]}");
 
             GameObjectId objId = operands[0];
+            if (objId.FullValue == 0x00)
+                return;
+
             GameObject? obj = _memory.FindObject(objId);
             Debug.Assert(obj != null);
 

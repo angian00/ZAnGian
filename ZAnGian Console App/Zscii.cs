@@ -105,7 +105,7 @@ namespace ZAnGian
         {
             _alphabetChars.Clear();
 
-            if (translationTableAddr == null || translationTableAddr.Value == 0x00)
+            if (translationTableAddr == (MemWord)null || translationTableAddr.Value == 0x00)
                 SetDefaultTranslationTable();
             else
             {
@@ -130,7 +130,7 @@ namespace ZAnGian
         }
         public static void SetUnicodeTable(ZMemory memory, MemWord unicodeTableAddr)
         {
-            if (unicodeTableAddr == null || unicodeTableAddr.Value == 0x00)
+            if (unicodeTableAddr == (MemWord)null || unicodeTableAddr.Value == 0x00)
                 _extendedZscii2AsciiTable = DefaultExtendedZscii2AsciiTable;
             else
             {

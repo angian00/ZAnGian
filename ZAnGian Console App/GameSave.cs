@@ -418,7 +418,7 @@ namespace ZAnGian
 
         private void WriteStackFrame(RoutineData rData)
         {
-            WriteNBytes(3, (UInt32)(rData.ReturnAddress == null ? 0x00 : rData.ReturnAddress.Value));
+            WriteNBytes(3, (UInt32)(rData.ReturnAddress == (MemWord)null ? 0x00 : rData.ReturnAddress.Value));
             _currAddr += 3;
 
             byte flags = 0x00;

@@ -128,7 +128,7 @@ namespace ZAnGian
         public void DumpDynamicMem()
         {
             _logger.Debug("-- Dynamic memory image");
-            for (UInt16 addr=0; addr < BaseStaticMem.Value; addr++)
+            for (UInt16 addr = 0; addr < BaseStaticMem.Value; addr++)
             {
                 _logger.Debug($"[0x{addr:x4}] 0x{Data[addr]:x2}");
             }
@@ -184,7 +184,7 @@ namespace ZAnGian
             MemWord memPos = (MemWord)(ObjectTableLoc + 2 * MaxNObjProps + (iObj.FullValue - 1) * ObjEntrySize);
             //Console.WriteLine($"DEBUG: FindObject[{memPos}]");
 
-            GameObject gameObj = new GameObject(iObj, memPos, this);
+            GameObject gameObj = MakeObject(iObj, memPos);
 
             return gameObj;
 
@@ -195,6 +195,7 @@ namespace ZAnGian
             return ReadWord(ObjectTableLoc + (propId - 1) * 2);
         }
 
+
         public GameObjectId MakeObjectId(uint val)
         {
             if (ZVersion < 5)
@@ -202,6 +203,23 @@ namespace ZAnGian
             else
                 return new MemWord(val);
         }
+
+        public GameObject MakeObject(GameObjectId iObj, MemWord baseAddr)
+        {
+            if (ZVersion < 5)
+                return new GameObjectV3(iObj, baseAddr, this);
+            else
+                return new GameObjectV5(iObj, baseAddr, this);
+        }
+
+        public MemByte GetPropertyLength(MemWord propAddr)
+        {
+            if (ZVersion < 5)
+                return GameObjectV3.GetPropertyLength(this, propAddr);
+            else
+                return GameObjectV5.GetPropertyLength(this, propAddr);
+        }
+
 
 
         public MemByte ReadByte(ushort targetAddr)
