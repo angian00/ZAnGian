@@ -57,23 +57,20 @@ namespace ZAnGian
             while (true)
             //for (int iInstr = 0; iInstr < 10000; iInstr++)
             {
-                _logger.All($"sp={_pc.Value} [{_pc}]: {StringUtils.ByteToBinaryString(_memory.ReadByte(_pc).Value)}");
+                byte opcodeByte = _memory.ReadByte(_pc).Value;
+                _logger.All($"sp={_pc.Value} [{_pc}]: {StringUtils.ByteToBinaryString(opcodeByte)}");
 
-                byte formBits = (byte)(_memory.ReadByte(_pc).Value >> 6);
                 OpCodeForm form;
 
-                switch (formBits)
-                {
-                    case 0b10:
-                        form = OpCodeForm.Short;
-                        break;
-                    case 0b11:
-                        form = OpCodeForm.Variable;
-                        break;
-                    default:
-                        form = OpCodeForm.Long;
-                        break;
-                }
+                if ((opcodeByte >> 6) == 0b10)
+                    form = OpCodeForm.Short;
+                else if ((opcodeByte >> 6) == 0b11)
+                    form = OpCodeForm.Variable;
+                else if (opcodeByte == 0xbe)
+                    form = OpCodeForm.Extended;
+                else
+                    form = OpCodeForm.Long;
+
 
                 bool isVAR = false;
                 byte opcode = 0x00; //nonexistent opcode as default
@@ -84,9 +81,9 @@ namespace ZAnGian
                 switch (form)
                 {
                     case OpCodeForm.Short:
-                        opcode = (_memory.ReadByte(_pc) & 0b00001111).Value;
+                        opcode = (byte)(opcodeByte & 0b00001111);
 
-                        opTypeBits = ((_memory.ReadByte(_pc) & 0b00110000) >> 4).Value;
+                        opTypeBits = (byte)((opcodeByte & 0b00110000) >> 4);
                         operandTypes[0] = ParseOperandType(opTypeBits);
                         if (operandTypes[0] == OperandType.Omitted)
                             nOps = 0;
@@ -97,15 +94,15 @@ namespace ZAnGian
                         break;
 
                     case OpCodeForm.Long:
-                        opcode = (_memory.ReadByte(_pc) & 0b00011111).Value;
+                        opcode = (byte)(opcodeByte & 0b00011111);
                         nOps = 2;
 
-                        if ((_memory.ReadByte(_pc) & 0b01000000) == 0b01000000)
+                        if ((opcodeByte & 0b01000000) == 0b01000000)
                             operandTypes[0] = OperandType.Variable;
                         else
                             operandTypes[0] = OperandType.SmallConstant;
 
-                        if ((_memory.ReadByte(_pc).Value & 0b00100000) == 0b00100000)
+                        if ((opcodeByte & 0b00100000) == 0b00100000)
                             operandTypes[1] = OperandType.Variable;
                         else
                             operandTypes[1] = OperandType.SmallConstant;
@@ -114,13 +111,13 @@ namespace ZAnGian
                         break;
 
                     case OpCodeForm.Variable:
-                        opcode = (_memory.ReadByte(_pc) & 0b00011111).Value;
+                        opcode = (byte)(opcodeByte & 0b00011111);
                         operandTypes[0] = ParseOperandType(((_memory.ReadByte(_pc + 1) & 0b11000000) >> 6).Value);
                         operandTypes[1] = ParseOperandType(((_memory.ReadByte(_pc + 1) & 0b00110000) >> 4).Value);
                         operandTypes[2] = ParseOperandType(((_memory.ReadByte(_pc + 1) & 0b00001100) >> 2).Value);
                         operandTypes[3] = ParseOperandType((_memory.ReadByte(_pc + 1) & 0b00000011).Value);
 
-                        if ((_memory.ReadByte(_pc) & 0b00100000) == 0x00)
+                        if ((opcodeByte & 0b00100000) == 0x00)
                         {
                             nOps = 2;
                         }
@@ -535,10 +532,20 @@ namespace ZAnGian
                                 break;
 
                             case 0x19:
+                                OpcodeCall2S(operands);
+                                break;
+
                             case 0x1A:
+                                OpcodeCall2N(operands);
+                                break;
+
                             case 0x1B:
+                                OpcodeSetColour(operands);
+                                break;
+
                             case 0x1C:
-                                throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
+                                OpcodeThrow(operands);
+                                break;
 
                             case 0x1D:
                             case 0x1E:

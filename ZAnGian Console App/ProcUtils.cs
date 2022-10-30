@@ -1,10 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Net.NetworkInformation;
-using System.Reflection.Emit;
-using System.Runtime.ConstrainedExecution;
-using System.Runtime.Intrinsics.X86;
+﻿using System.Diagnostics;
 using System.Text;
 
 namespace ZAnGian
@@ -86,7 +80,8 @@ namespace ZAnGian
         private void ReturnRoutine(MemWord value)
         {
             RoutineData currRoutine = _stack.PopRoutine();
-            WriteVariable(currRoutine.ReturnVariableId, value);
+            if (!currRoutine.IgnoreReturnVariable)
+                WriteVariable(currRoutine.ReturnVariableId, value);
 
             _pc = currRoutine.ReturnAddress;
         }
@@ -168,12 +163,12 @@ namespace ZAnGian
             return sb.ToString();
         }
 
-        private MemWord UnpackAddress(MemWord packedAddr)
+        private MemWord UnpackAddress(MemValue packedAddr)
         {
             if (_memory.ZVersion == 3)
-                return packedAddr * 2;
+                return new MemWord(packedAddr.FullValue * 2);
             else if (_memory.ZVersion == 5)
-                return packedAddr * 4;
+                return new MemWord(packedAddr.FullValue * 4);
             else
             {
                 Debug.Assert(false, "Unreachable");
@@ -187,14 +182,21 @@ namespace ZAnGian
             StatusInfo statusInfo = new StatusInfo();
 
             statusInfo.IsScoreGame = ((_memory.ZVersion < 3) || ((_memory.Flags1 & 0b00000010) != 0b00000010));
-            
-            GameObjectId currObjId = ReadVariable(0x10);
-            Debug.Assert(currObjId.FullValue != 0x00);
 
-            GameObject? currObj = _memory.FindObject(currObjId);
-            Debug.Assert(currObj != null);
-            
-            statusInfo.CurrObjName = currObj.ShortName;
+            GameObjectId currObjId = ReadVariable(0x10);
+
+            if (currObjId.FullValue == 0x00)
+            {
+                statusInfo.CurrObjName = "--";
+            }
+            else
+            {
+                GameObject? currObj = _memory.FindObject(currObjId);
+                Debug.Assert(currObj != null);
+
+                statusInfo.CurrObjName = currObj.ShortName;
+            }
+
 
             if (statusInfo.IsScoreGame)
             {

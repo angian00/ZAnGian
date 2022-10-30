@@ -88,6 +88,7 @@ namespace ZAnGian
 
         public MemWord ReturnAddress;
         public GameVariableId ReturnVariableId;
+        public bool IgnoreReturnVariable = false;
 
 
         public void Dump()

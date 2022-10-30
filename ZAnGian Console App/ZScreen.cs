@@ -11,6 +11,7 @@ namespace ZAnGian
         public ZScreen()
         {
             Console.Clear();
+            Console.WriteLine(); //leave space for top status bar
         }
 
 

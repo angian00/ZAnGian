@@ -13,37 +13,18 @@ namespace ZAnGian
         {
             _logger.Debug($"CALL {FormatOperands(nOps, operands)}");
 
-            MemWord packedAddr = (MemWord)operands[0];
-            MemWord routineAddr = UnpackAddress(packedAddr);
+            MemValue packedAddr = operands[0];
 
-            RoutineData newRoutine = new RoutineData();
-
-            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
-            _pc++;
-
-            newRoutine.ReturnVariableId = storeVar;
-            newRoutine.ReturnAddress = _pc;
-
-            //jump to routine instructions
-            _pc = routineAddr;
-
-            byte nLocalVars = _memory.ReadByte(_pc).Value;
-            _pc++;
-
-            for (byte i = 0; i < nLocalVars; i++)
-            {
-                newRoutine.AddLocalVariable(_memory.ReadWord(_pc));
-                _pc += 2;
-            }
-
+            MemValue[] args = new MemValue[nOps-1];
             for (byte i = 1; i < nOps; i++)
             {
-                newRoutine.SetLocalVariable(i, operands[i].FullValue);
+                args[i-1] = operands[i];
             }
 
+            MemByte storeVar = _memory.ReadByte(_pc);
+            _pc++;
 
-            _stack.PushRoutine(newRoutine);
-            //TODO manage case (routineAddr == 0x00) as per opcode spec 
+            CallRoutine(packedAddr, args, storeVar);
         }
 
 
@@ -255,7 +236,7 @@ namespace ZAnGian
                 {
                     ZMemory initialMemState = _interpreter.GetInitialMemoryState();
                     resOk = savedGame.Restore(ref _memory, ref _stack, ref _pc, initialMemState);
-                    
+
                     //NB: parser needs to refresh its copy of memory too
                     _parser = new ZParser(_memory);
 
@@ -314,7 +295,7 @@ namespace ZAnGian
             ZMemory initialMemState = _interpreter.GetInitialMemoryState();
             GameSave gameSave = new GameSave(_memory, _stack, _pc, initialMemState);
             bool savedOk = gameSave.SaveFile(filepath);
-            
+
             //BranchOnCondition(savedOk, targetOffset, branchOnTrue); //CHECK
         }
 
@@ -521,7 +502,7 @@ namespace ZAnGian
         {
             _logger.Debug($"PRINT_PADDR {operands[0]}");
 
-            MemWord targetAddr = new MemWord(operands[0].FullValue * PACKED_ADDR_FACTOR);
+            MemWord targetAddr = UnpackAddress(operands[0]);
             string msg = Zscii.DecodeText(_memory.Data, targetAddr, out _);
 
             _screen.Print(msg);
@@ -573,6 +554,71 @@ namespace ZAnGian
 
             WriteVariable(storeVar, a & b);
         }
+
+
+        private void OpcodeCall2N(MemValue[] operands)
+        {
+            _logger.Debug($"CALL_2N {operands[0]} {operands[1]}");
+
+            MemValue packedAddr = operands[0];
+            MemValue[] args = new MemValue[] { operands[1] };
+
+            CallRoutine(packedAddr, args, null);
+        }
+
+        private void OpcodeCall2S(MemValue[] operands)
+        {
+            _logger.Debug($"CALL_2S {operands[0]} {operands[1]}");
+
+            MemValue packedAddr = operands[0];
+            MemValue[] args = new MemValue[] { operands[1] };
+
+            MemByte storeVar = _memory.ReadByte(_pc);
+            _pc++;
+
+            CallRoutine(packedAddr, args, storeVar);
+        }
+
+
+        private void CallRoutine(MemValue packedAddr, MemValue[] args, MemByte storeVar)
+        {
+            MemWord routineAddr = UnpackAddress(packedAddr);
+
+            RoutineData newRoutine = new RoutineData();
+
+            if (storeVar != null)
+                newRoutine.ReturnVariableId = storeVar.Value;
+            else
+                newRoutine.IgnoreReturnVariable = true;
+
+            //jump to routine instructions
+            _pc = routineAddr;
+
+            byte nLocalVars = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            for (byte i = 0; i < nLocalVars; i++)
+            {
+                MemWord var;
+
+                if (_memory.ZVersion < 5)
+                {
+                    var = _memory.ReadWord(_pc);
+                    _pc += 2;
+                }
+                else
+                    var = new MemWord(0x00);
+
+                newRoutine.AddLocalVariable(var);
+            }
+
+            for (int i=0; i< args.Length; i++)
+                newRoutine.SetLocalVariable(0, new MemWord(args[i].FullValue));
+
+            _stack.PushRoutine(newRoutine);
+            //TODO manage case (routineAddr == 0x00) as per opcode spec 
+        }
+
 
         private void OpcodeClearAttr(MemValue[] operands)
         {
@@ -707,7 +753,7 @@ namespace ZAnGian
             else
                 cmpValue = new MemWord(operands[1].FullValue);
 
-            
+
             MemWord varValue = ReadVariable(varId);
             varValue++;
             WriteVariable(varId, varValue);
@@ -858,6 +904,13 @@ namespace ZAnGian
             obj.SetAttribute(iAttr);
         }
 
+
+        private void OpcodeSetColour(MemValue[] operands)
+        {
+            _logger.Debug($"SET_COLOUR {operands[0]} {operands[1]}");
+            //TODO: set_colour foreground background
+        }
+
         private void OpcodeStore(OperandType[] operandTypes, MemValue[] operands)
         {
             _logger.Debug($"STORE {operands[0]} {operands[1]}");
@@ -907,5 +960,13 @@ namespace ZAnGian
 
             Branch(obj.HasAttribute(iAttr));
         }
+
+        private void OpcodeThrow(MemValue[] operands)
+        {
+            _logger.Debug($"THROW {operands[0]} {operands[1]}");
+            //TODO: throw
+        }
+
+
     }
 }
