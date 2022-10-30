@@ -28,7 +28,7 @@ namespace ZAnGian
             _logger.Debug("PRINT");
 
             ushort nBytesRead;
-            string msg = Zscii.DecodeText(_memory.Data, _pc, out nBytesRead);
+            string msg = Zscii.DecodeText(_memory, _pc, out nBytesRead);
             _pc += nBytesRead;
 
             _screen.Print(msg);
@@ -39,7 +39,7 @@ namespace ZAnGian
             _logger.Debug("PRINT_RET");
 
             ushort nBytesRead;
-            string msg = Zscii.DecodeText(_memory.Data, _pc, out nBytesRead);
+            string msg = Zscii.DecodeText(_memory, _pc, out nBytesRead);
             _pc += nBytesRead;
 
             _screen.Print(msg);

@@ -107,6 +107,7 @@ namespace ZAnGian
                 newRoutine.AddLocalVariable(var);
             }
 
+            newRoutine.NumArgs = args.Length;
             for (byte i = 0; i < args.Length; i++)
                 newRoutine.SetLocalVariable((byte)(i+1), new MemWord(args[i].FullValue));
 

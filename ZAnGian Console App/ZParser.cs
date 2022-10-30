@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ZAnGian
 {
     public class ZParser
     {
-        private const int DICT_ENTRY_TEXT_LEN = 4; //depends on version
-
         ZMemory _memory;
         List<char> _wordSeparators;
         byte _dictEntrySize;
@@ -133,7 +132,7 @@ namespace ZAnGian
 
             for (ushort iDictEntry=0; iDictEntry < _numDictEntries; iDictEntry ++)
             {
-                string dictWord = Zscii.DecodeText(_memory.Data, memAddr, out _, DICT_ENTRY_TEXT_LEN);
+                string dictWord = Zscii.DecodeText(_memory, memAddr, out _, _memory.DictEntryTextLen);
                 if (dictWord == word)
                     return memAddr;
 

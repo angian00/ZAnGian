@@ -7,13 +7,8 @@ Supports version 3 files.
 
 
 ## TODO
-- dictionary entry size
-- no initial values for routine local variables
 - extended form opcodes
 
-- string decoding:
-	- 3.5.5: alphabet table
-	- 3.8.5.2: header extension table
 
 - ... all new opcodes
 
@@ -29,6 +24,9 @@ Supports version 3 files.
 + output stream 2 (game transcript)
 + (maybe) window-related commands
 
+### Details
+- any terminating characters in read
+- fix unicode extension table
 
 ## Resources
 Z-Machine Specification: 

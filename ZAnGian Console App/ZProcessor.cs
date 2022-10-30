@@ -234,7 +234,10 @@ namespace ZAnGian
                         break;
 
                     case 0x04:
-                        OpcodeSRead(nOps, operands);
+                        if (_memory.ZVersion == 3)
+                            OpcodeSRead(nOps, operands);
+                        else if (_memory.ZVersion == 5)
+                            OpcodeARead(nOps, operands);
                         break;
 
                     case 0x05:
@@ -276,6 +279,10 @@ namespace ZAnGian
                         OpcodeInputStream(nOps, operands);
                         throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
                         //break;
+
+                    case 0x1F:
+                        OpcodeCheckArgCount(nOps, operands);
+                        break;
 
                     default:
                         //throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
@@ -351,7 +358,7 @@ namespace ZAnGian
                                 throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
 
                             default:
-                                Debug.Assert(false, "Unreachable if all opcodes are accounted for");
+                                Debug.Assert(false, "Unreachable");
                                 break;
                         }
 
@@ -423,7 +430,7 @@ namespace ZAnGian
                                 break;
 
                             default:
-                                Debug.Assert(false, "Unreachable if all opcodes are accounted for");
+                                Debug.Assert(false, "Unreachable");
                                 break;
                         }
 
@@ -540,12 +547,14 @@ namespace ZAnGian
                                 break;
 
                             case 0x1B:
-                                OpcodeSetColour(operands);
-                                break;
+                                //OpcodeSetColour(operands);
+                                //break;
+                                throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
 
                             case 0x1C:
-                                OpcodeThrow(operands);
-                                break;
+                                //OpcodeThrow(operands);
+                                //break;
+                                throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
 
                             case 0x1D:
                             case 0x1E:
@@ -553,14 +562,14 @@ namespace ZAnGian
                                 throw new ArgumentException($"Invalid opcode: {opCodeStr}");
 
                             default:
-                                Debug.Assert(false, "Unreachable if all opcodes are accounted for");
+                                Debug.Assert(false, "Unreachable");
                                 break;
                         }
 
                         break;
 
                     default:
-                        Debug.Assert(false, "Unreachable if all opcodes are accounted for");
+                        Debug.Assert(false, "Unreachable");
                         break;
                 }
             }

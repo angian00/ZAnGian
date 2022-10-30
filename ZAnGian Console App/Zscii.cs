@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
+using System.Reflection.Emit;
 using System.Text;
+using static System.Formats.Asn1.AsnWriter;
+using static System.Reflection.Metadata.BlobBuilder;
+using static ZAnGian.Zscii;
 
 namespace ZAnGian
 {
@@ -16,8 +21,9 @@ namespace ZAnGian
 
 
         private static Dictionary<Alphabet, string> _alphabetChars = new Dictionary<Alphabet, string>();
-        private static Dictionary<int, int> _defaultExtendedAscii2ZsciiTable = new Dictionary<int, int>();
-        private static Dictionary<int, int> _defaultExtendedZscii2AsciiTable = new Dictionary<int, int>() {
+        private static Dictionary<int, int> _extendedAscii2ZsciiTable = new Dictionary<int, int>();
+        private static Dictionary<int, int> _extendedZscii2AsciiTable = new Dictionary<int, int>();
+        private static Dictionary<int, int> DefaultExtendedZscii2AsciiTable = new Dictionary<int, int>() {
                 { 155, 0x0e4 },
                 { 156, 0x0f6 },
                 { 157, 0x0fc },
@@ -91,32 +97,106 @@ namespace ZAnGian
 
         static Zscii()
         {
+            SetTranslationTable(null, null);
+            SetUnicodeTable(null, null);
+        }
+
+        public static void SetTranslationTable(ZMemory memory, MemWord translationTableAddr)
+        {
+            _alphabetChars.Clear();
+
+            if (translationTableAddr == null || translationTableAddr.Value == 0x00)
+                SetDefaultTranslationTable();
+            else
+            {
+                //Such an alphabet table consists of 78 bytes arranged as 3 blocks of 26 ZSCII values, 
+                //    translating Z-characters 6 to 31 for alphabets A0, A1 and A2.
+                //    Z-characters 6 and 7 of A2, however, are still translated as escape and newline codes(as above).
+
+                MemWord currAddr = translationTableAddr;
+
+                foreach (Alphabet alph in new Alphabet[] { Alphabet.Lowercase, Alphabet.Uppercase, Alphabet.Punctuation })
+                {
+                    StringBuilder sb = new();
+                    for (int i = 0; i < 26; i++)
+                    {
+                        sb.Append(Zscii2Ascii(memory.ReadByte(currAddr).Value));
+                        currAddr++;
+                    }
+
+                    _alphabetChars[alph] = sb.ToString();
+                }
+            }
+        }
+        public static void SetUnicodeTable(ZMemory memory, MemWord unicodeTableAddr)
+        {
+            if (unicodeTableAddr == null || unicodeTableAddr.Value == 0x00)
+                _extendedZscii2AsciiTable = DefaultExtendedZscii2AsciiTable;
+            else
+            {
+                _extendedZscii2AsciiTable = new Dictionary<int, int>();
+
+                MemWord currAddr = unicodeTableAddr;
+                byte nChars = memory.ReadByte(currAddr++).Value;
+                for (int i = 0; i < nChars; i++)
+                {
+                    _extendedZscii2AsciiTable[i + 155] = memory.ReadWord(currAddr).Value;
+                    currAddr += 2;
+                }
+            }
+
+            _extendedAscii2ZsciiTable = CollectionUtils.FlipDict(_extendedZscii2AsciiTable);
+        }
+
+
+        private static void SetDefaultTranslationTable()
+        {
             _alphabetChars[Alphabet.Lowercase] = "abcdefghijklmnopqrstuvwxyz";
             _alphabetChars[Alphabet.Uppercase] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             _alphabetChars[Alphabet.Punctuation] = " \n0123456789.,!?_#'\"/\\-:()";
-
-            _defaultExtendedAscii2ZsciiTable = CollectionUtils.FlipDict(_defaultExtendedZscii2AsciiTable);
         }
 
-        public static string DecodeText(byte[] data, MemWord startAddr, out ushort nBytesRead, ushort nBytesToRead=ushort.MaxValue)
+
+        public static string DecodeText(ZMemory memory, MemWord startAddr, out ushort nBytesRead, ushort nBytesToRead=ushort.MaxValue)
         {
             StringBuilder sb = new();
             Alphabet currAlphabet = Alphabet.Lowercase;
 
+            byte[] data = memory.Data;
+
             ushort start = startAddr.Value;
             ushort i = start;
+            int abbrIndex = -1;
+
             while (i < start + nBytesToRead)
             {
                 //Console.WriteLine($"decoding data 0x{data[i]:x2} 0x{data[i+1]:x2}");
                 byte ch1 = (byte)((data[i] & 0b01111100) >> 2);
                 byte ch2 = (byte)( ((data[i] & 0b00000011) << 3) + ((data[i + 1] & 0b11100000) >> 5) );
                 byte ch3 = (byte)(data[i + 1] & 0b00011111);
-
+                
                 foreach (byte ch in new byte[] { ch1, ch2, ch3 })
                 {
+                    if (abbrIndex != -1)
+                    {
+                        //lookup abbreviation
+                        // If z is the first Z - character(1, 2 or 3) and x the subsequent one, then the interpreter must look up
+                        // entry 32(z - 1) + x in the abbreviations table and print the string at that word address.
+                        MemWord abbrStringAddr = memory.ReadWord((ushort)(0x42 + 32 * abbrIndex + ch));
+                        abbrStringAddr *= 2; //abbr table addresses are "word addresses"
+                        sb.Append(DecodeText(memory, abbrStringAddr, out _));
+                        abbrIndex = -1;
+                        continue;
+                    }
+
                     if (ch == 0x00)
                     {
                         sb.Append(" ");
+                    }
+                    else if (ch == 0x01 || ch == 0x02 || ch == 0x03)
+                    {
+                        //abbreviation
+                        abbrIndex = ch - 0x01;
                     }
                     else if (ch == 0x04)
                     {
@@ -175,8 +255,7 @@ namespace ZAnGian
 
                 case >= 32 and <= 126: return (char)zsciiCode;
 
-                case >= 155 and <= 223: return (char)_defaultExtendedZscii2AsciiTable[zsciiCode];
-                case >= 224 and <= 255: return '?'; // valid codepoint but not mapped in default table?
+                case >= 155 and <= 255: return _extendedZscii2AsciiTable.ContainsKey(zsciiCode) ? (char)_extendedZscii2AsciiTable[zsciiCode] : '?';
 
                 default: throw new ArgumentException($"Invalid zscii code: {zsciiCode}");
             }
@@ -194,8 +273,8 @@ namespace ZAnGian
                 case >= (char)32 and <= (char)126: return (int)ch;
                     
                 default: 
-                    if (_defaultExtendedAscii2ZsciiTable.ContainsKey((int)ch))
-                        return _defaultExtendedAscii2ZsciiTable[ch];
+                    if (_extendedAscii2ZsciiTable.ContainsKey((int)ch))
+                        return _extendedAscii2ZsciiTable[ch];
                     else
                         throw new ArgumentException($"Invalid ascii char: {ch}");
             }

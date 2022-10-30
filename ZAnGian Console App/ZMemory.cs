@@ -17,8 +17,8 @@ namespace ZAnGian
 
         private readonly int MaxNObjects;
         private readonly ushort ObjEntrySize;
-        private readonly int MAX_N_OBJ_PROPS;
-
+        private readonly int MaxNObjProps;
+        public readonly ushort DictEntryTextLen;
 
 
         public byte[] Data;
@@ -31,7 +31,7 @@ namespace ZAnGian
         public MemWord GlobalVarTableLoc;
         public MemWord BaseStaticMem { get; private set; }
         private MemWord AbbrTableLoc;
-        private uint FileLen;
+        private ushort FileLen;
         public MemWord GameRelease { get; private init; }
         public string GameSerialNum { get; private init; }
         public MemWord Checksum { get; private init; }
@@ -70,17 +70,27 @@ namespace ZAnGian
                 FileLen *= 2;
                 MaxNObjects = 255;
                 ObjEntrySize = 9;
-                MAX_N_OBJ_PROPS = 31;
+                MaxNObjProps = 31;
+                DictEntryTextLen = 4;
             }
             else if (ZVersion == 5)
             {
                 FileLen *= 4;
                 MaxNObjects = 65535;
                 ObjEntrySize = 14;
-                MAX_N_OBJ_PROPS = 63;
+                MaxNObjProps = 63;
+                DictEntryTextLen = 6;
             }
             this.Checksum = ReadWord(0x1C);
             this.StdRevision = ReadWord(0x32);
+
+
+            //FIXME: Unicode table address in header extension table
+            //specific entry from "header extension table"
+            //if (ReadWord(0x36).Value >= 3)
+            //    Zscii.SetUnicodeTable(this, ReadWord(0x36 + 6));
+
+            Zscii.SetTranslationTable(this, ReadWord(0x34));
 
 
             //specify missing interpreter features
@@ -171,7 +181,7 @@ namespace ZAnGian
             if (iObj == null || iObj.FullValue == 0x00)
                 return null;
 
-            MemWord memPos = (MemWord)(ObjectTableLoc + 2 * MAX_N_OBJ_PROPS + (iObj.FullValue - 1) * ObjEntrySize);
+            MemWord memPos = (MemWord)(ObjectTableLoc + 2 * MaxNObjProps + (iObj.FullValue - 1) * ObjEntrySize);
             //Console.WriteLine($"DEBUG: FindObject[{memPos}]");
 
             GameObject gameObj = new GameObject(iObj, memPos, this);

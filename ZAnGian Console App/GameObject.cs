@@ -64,7 +64,7 @@ namespace ZAnGian
             {
                 MemWord snAddr = _memory.ReadWord(_propPAddr);
                 byte textLen = _memory.ReadByte(snAddr).Value;
-                string value = Zscii.DecodeText(_memory.Data, snAddr + 1, out _, (ushort)(2 * textLen));
+                string value = Zscii.DecodeText(_memory, snAddr + 1, out _, (ushort)(2 * textLen));
 
                 return value;
             }

@@ -10,7 +10,7 @@ namespace ZAnGian
 
         private Stack<RoutineData> _routineStack = new();
 
-        private RoutineData CurrRoutineData { get => _routineStack.Peek(); }
+        public RoutineData CurrRoutineData { get => _routineStack.Peek(); }
         public Stack<RoutineData> RoutineStack { get => _routineStack; }
 
         public ZStack(bool addFirstFrame = true)
@@ -86,6 +86,7 @@ namespace ZAnGian
         public List<MemWord> LocalVariables { get => _localVariables; }
         public Stack<MemWord> ValueStack { get => _valueStack; }
 
+        public int NumArgs;
         public MemWord ReturnAddress;
         public GameVariableId ReturnVariableId;
         public bool IgnoreReturnVariable = false;

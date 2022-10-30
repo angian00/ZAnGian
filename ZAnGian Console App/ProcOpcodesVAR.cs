@@ -5,6 +5,38 @@ namespace ZAnGian
 {
     public partial class ZProcessor
     {
+        private void OpcodeARead(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"AREAD {FormatOperands(nOps, operands)}");
+
+            MemWord textBufferAddr = new MemWord(operands[0].FullValue);
+            MemWord parseBufferAddr = new MemWord(operands[1].FullValue);
+
+            if (nOps >= 3)
+            {
+                MemWord routineAddr = new MemWord(operands[2].FullValue);
+                ushort time = operands[3].FullValue;
+                //TODO: input timeout mechanism
+            }
+
+            MemByte storeVar = _memory.ReadByte(_pc);
+            _pc++;
+
+
+            string inputStr = _input.ReadLine(); //TODO: check any terminating char for v5
+            //_logger.All($"input string: {inputStr}");
+
+            ushort retValue = 0x00;
+            if (parseBufferAddr != 0x00)
+            {
+                _parser.ParseInput(inputStr, textBufferAddr, parseBufferAddr);
+                retValue = 13; //input-terminating char
+            }
+
+            WriteVariable(storeVar.Value, retValue);
+        }
+
+
         private void OpcodeCall(int nOps, MemValue[] operands)
         {
             _logger.Debug($"CALL {FormatOperands(nOps, operands)}");
@@ -21,6 +53,25 @@ namespace ZAnGian
             _pc++;
 
             CallRoutine(packedAddr, args, storeVar);
+        }
+
+
+        private void OpcodeCheckArgCount(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"CHECK_ARG_COUNT {FormatOperands(nOps, operands)}");
+
+            ushort argNum = operands[0].FullValue;
+
+            MemValue[] args = new MemValue[nOps - 1];
+            for (byte i = 1; i < nOps; i++)
+            {
+                args[i - 1] = operands[i];
+            }
+
+            MemByte storeVar = _memory.ReadByte(_pc);
+            _pc++;
+
+            Branch(_stack.CurrRoutineData.NumArgs <= argNum);
         }
 
 
