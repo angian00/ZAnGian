@@ -72,6 +72,49 @@ namespace ZAnGian
             }
         }
 
+
+        private void CallRoutine(MemValue packedAddr, MemValue[] args, MemByte storeVar)
+        {
+            MemWord routineAddr = UnpackAddress(packedAddr);
+
+            RoutineData newRoutine = new RoutineData();
+            newRoutine.ReturnAddress = _pc;
+
+
+            if (storeVar != null)
+                newRoutine.ReturnVariableId = storeVar.Value;
+            else
+                newRoutine.IgnoreReturnVariable = true;
+
+            //jump to routine instructions
+            _pc = routineAddr;
+
+            byte nLocalVars = _memory.ReadByte(_pc).Value;
+            _pc++;
+
+            for (byte i = 0; i < nLocalVars; i++)
+            {
+                MemWord var;
+
+                if (_memory.ZVersion < 5)
+                {
+                    var = _memory.ReadWord(_pc);
+                    _pc += 2;
+                }
+                else
+                    var = new MemWord(0x00);
+
+                newRoutine.AddLocalVariable(var);
+            }
+
+            for (byte i = 0; i < args.Length; i++)
+                newRoutine.SetLocalVariable((byte)(i+1), new MemWord(args[i].FullValue));
+
+            _stack.PushRoutine(newRoutine);
+            //TODO manage case (routineAddr == 0x00) as per opcode spec 
+        }
+
+
         private void ReturnRoutine(ushort value)
         {
             ReturnRoutine(new MemWord(value));
