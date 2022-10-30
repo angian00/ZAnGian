@@ -12,7 +12,7 @@ namespace ZAnGian
             MemWord textBufferAddr = new MemWord(operands[0].FullValue);
             MemWord parseBufferAddr = new MemWord(operands[1].FullValue);
 
-            if (nOps >= 3)
+            if (nOps >= 4)
             {
                 MemWord routineAddr = new MemWord(operands[2].FullValue);
                 ushort time = operands[3].FullValue;
@@ -178,6 +178,30 @@ namespace ZAnGian
 
             WriteVariable(storeVar, value);
         }
+
+
+        private void OpcodeReadChar(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"READ_CHAR {FormatOperands(nOps, operands)}");
+
+            //operands[0] == 1 always
+
+            if (nOps >= 3)
+            {
+                MemWord routineAddr = new MemWord(operands[1].FullValue);
+                ushort time = operands[2].FullValue;
+                //TODO: input timeout mechanism
+            }
+
+            MemByte storeVar = _memory.ReadByte(_pc);
+            _pc++;
+
+
+            ushort ch  = (ushort)_input.ReadChar();
+
+            WriteVariable(storeVar.Value, ch);
+        }
+
 
         private void OpcodeSetWindow(int nOps, MemValue[] operands)
         {

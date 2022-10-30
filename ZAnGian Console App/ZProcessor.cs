@@ -280,6 +280,10 @@ namespace ZAnGian
                         throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
                         //break;
 
+                    case 0x16:
+                        OpcodeReadChar(nOps, operands);
+                        break;
+
                     case 0x19:
                         OpcodeCallVN(nOps, operands);
                         break;

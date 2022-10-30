@@ -19,6 +19,11 @@ namespace ZAnGian
             return Console.ReadLine();
         }
 
+        public char ReadChar()
+        {
+            return Console.ReadKey().KeyChar;
+        }
+
 
         public string GetFilePath(bool mustExist)
         {
