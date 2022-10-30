@@ -55,6 +55,21 @@ namespace ZAnGian
             CallRoutine(packedAddr, args, storeVar);
         }
 
+        private void OpcodeCallVN(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"CALLVN {FormatOperands(nOps, operands)}");
+
+            MemValue packedAddr = operands[0];
+
+            MemValue[] args = new MemValue[nOps - 1];
+            for (byte i = 1; i < nOps; i++)
+            {
+                args[i - 1] = operands[i];
+            }
+
+            CallRoutine(packedAddr, args, null);
+        }
+
 
         private void OpcodeCheckArgCount(int nOps, MemValue[] operands)
         {

@@ -160,15 +160,21 @@ namespace ZAnGian
             _logger.Debug($"GET_PROP_ADDR {operands[0]} {operands[1]}");
 
             GameObjectId objId = operands[0];
-            GameObject? obj = _memory.FindObject(objId);
-            Debug.Assert(obj != null);
 
             ushort propId = operands[1].FullValue;
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
             _pc++;
 
-            MemWord? pAddr = obj.GetPropertyAddress(propId);
+            MemWord? pAddr = null;
+
+            if (objId.FullValue != 0x00)
+            {
+                GameObject? obj = _memory.FindObject(objId);
+                Debug.Assert(obj != null);
+                pAddr = obj.GetPropertyAddress(propId);
+            }
+
             if (pAddr == null)
                 pAddr = new MemWord(0x00);
 
@@ -237,7 +243,8 @@ namespace ZAnGian
 
             GameObject? obj = _memory.FindObject(objId);
 
-            Branch(obj != null && obj.ParentId == parentId);
+            Branch((objId.FullValue == 0x00 && parentId.FullValue == 0x00) ||
+                (obj != null) && (obj.ParentId.FullValue == parentId.FullValue));
         }
 
         private void OpcodeJG(MemValue[] operands)

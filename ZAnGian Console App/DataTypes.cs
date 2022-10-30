@@ -67,12 +67,36 @@ namespace ZAnGian
         }
 
 
+        public static bool operator ==(MemByte v1, MemByte v2)
+        {
+            if (v1 is null)
+                return (v2 is null);
+            else if (v2 is null)
+                return false;
+
+            return (v1._value == v2._value);
+        }
         public static bool operator ==(MemByte v1, int v2)
         {
+            if (v1 is null)
+                return false;
+
             return (v1._value == v2);
+        }
+        public static bool operator !=(MemByte v1, MemByte v2)
+        {
+            if (v1 is null)
+                return (v2 is not null);
+            else if (v2 is null)
+                return true;
+
+            return (v1._value != v2._value);
         }
         public static bool operator !=(MemByte v1, int v2)
         {
+            if (v1 is null)
+                return true;
+
             return (v1._value != v2);
         }
         public static MemByte operator +(MemByte v1, MemByte v2)
@@ -198,12 +222,36 @@ namespace ZAnGian
             _value++;
         }
 
+        public static bool operator ==(MemWord v1, MemWord v2)
+        {
+            if (v1 is null)
+                return (v2 is null);
+            else if (v2 is null)
+                return false;
+
+            return (v1._value == v2._value);
+        }
         public static bool operator ==(MemWord v1, int v2)
         {
+            if (v1 is null)
+                return false;
+
             return (v1._value == v2);
+        }
+        public static bool operator !=(MemWord v1, MemWord v2)
+        {
+            if (v1 is null)
+                return v2 is not null;
+            else if (v2 is null)
+                return false;
+
+            return (v1._value != v2._value);
         }
         public static bool operator !=(MemWord v1, int v2)
         {
+            if (v1 is null)
+                return true;
+
             return (v1._value != v2);
         }
         public static bool operator <(MemWord v1, MemWord v2)

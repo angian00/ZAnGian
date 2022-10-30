@@ -167,6 +167,8 @@ namespace ZAnGian
             ushort start = startAddr.Value;
             ushort i = start;
             int abbrIndex = -1;
+            bool isMultiChar = false; //multi-char: see spec 3.4
+            byte multiChar1 = 0xff;
 
             while (i < start + nBytesToRead)
             {
@@ -183,9 +185,24 @@ namespace ZAnGian
                         // If z is the first Z - character(1, 2 or 3) and x the subsequent one, then the interpreter must look up
                         // entry 32(z - 1) + x in the abbreviations table and print the string at that word address.
                         MemWord abbrStringAddr = memory.ReadWord((ushort)(0x42 + 32 * abbrIndex + ch));
+                        //MemWord abbrStringAddr = new MemWord(memory.ReadByte((ushort)(0x42 + 32 * abbrIndex + ch)).Value);
                         abbrStringAddr *= 2; //abbr table addresses are "word addresses"
                         sb.Append(DecodeText(memory, abbrStringAddr, out _));
                         abbrIndex = -1;
+                        continue;
+                    }
+
+                    if (isMultiChar)
+                    {
+                        if (multiChar1 == 0xff)
+                            multiChar1 = ch;
+                        else
+                        {
+                            sb.Append(Zscii2Ascii((multiChar1 << 5) + ch));
+                            isMultiChar = false;
+                            multiChar1 = 0xff;
+                        }
+
                         continue;
                     }
 
@@ -205,6 +222,11 @@ namespace ZAnGian
                     else if (ch == 0x05)
                     {
                         currAlphabet = Alphabet.Punctuation;
+                    }
+                    else if (ch == 0x06 && currAlphabet == Alphabet.Punctuation)
+                    {
+                        isMultiChar = true;
+                        currAlphabet = Alphabet.Lowercase;
                     }
                     else
                     {
