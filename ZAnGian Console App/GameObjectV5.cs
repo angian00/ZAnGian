@@ -62,9 +62,8 @@ namespace ZAnGian
 
             while (true)
             {
-                MemWord currAddr = new MemWord(propAddr.Value);
                 MemByte sizeByte = _memory.ReadByte(propAddr);
-                currAddr++;
+                propAddr++;
 
                 if (sizeByte == 0x00)
                     return null;
@@ -73,8 +72,8 @@ namespace ZAnGian
                 if ((sizeByte & 0b10000000).Value == 0b10000000)
                 {
                     propId = (sizeByte & 0b00111111).Value;
-                    MemByte sizeByte2 = _memory.ReadByte(currAddr);
-                    currAddr++;
+                    MemByte sizeByte2 = _memory.ReadByte(propAddr);
+                    propAddr++;
                     propLen = (sizeByte2 & 0b00111111).Value;
                     if (propLen == 0x00)
                         propLen = 64; //as per spec 12.4.2.1.1
@@ -90,19 +89,18 @@ namespace ZAnGian
                     return propAddr;
                 }
 
-                propAddr = currAddr + propLen;
+                propAddr += propLen;
             }
         }
 
         public static MemByte GetPropertyLength(ZMemory memory, MemWord propAddr)
         {
-            MemByte sizeByte = memory.ReadByte(propAddr);
+            MemByte sizeByte = memory.ReadByte(propAddr-1);
 
             byte propLen;
             if ((sizeByte & 0b10000000).Value == 0b10000000)
             {
-                MemByte sizeByte2 = memory.ReadByte(propAddr+1);
-                propLen = (sizeByte2 & 0b00111111).Value;
+                propLen = (sizeByte & 0b00111111).Value;
                 if (propLen == 0x00)
                     propLen = 64;
             }
@@ -117,19 +115,16 @@ namespace ZAnGian
 
         public override MemValue? GetPropertyValue(ushort targetPropId)
         {
-            MemWord? currAddr = GetPropertyAddress(targetPropId);
-            if (currAddr == (MemWord)null)
+            MemWord? propAddr = GetPropertyAddress(targetPropId);
+            if (propAddr == (MemWord)null)
                 return null;
 
-            MemByte sizeByte = _memory.ReadByte(currAddr);
-            currAddr++;
+            MemByte sizeByte = _memory.ReadByte(propAddr-1);
 
             byte propLen;
             if ((sizeByte & 0b10000000).Value == 0b10000000)
             {
-                MemByte sizeByte2 = _memory.ReadByte(currAddr);
-                currAddr++;
-                propLen = (sizeByte2 & 0b00111111).Value;
+                propLen = (sizeByte & 0b00111111).Value;
                 if (propLen == 0x00)
                     propLen = 64; //as per spec 12.4.2.1.1
             }
@@ -139,9 +134,9 @@ namespace ZAnGian
             }
 
             if (propLen == 1)
-                return _memory.ReadByte(currAddr);
+                return _memory.ReadByte(propAddr);
             else if (propLen == 2)
-                return _memory.ReadWord(currAddr);
+                return _memory.ReadWord(propAddr);
             else
                 throw new ArgumentException("GetPropertyValue called when propLen > 2");
         }
@@ -149,19 +144,16 @@ namespace ZAnGian
 
         public override void PutPropertyValue(ushort targetPropId, MemValue propValue)
         {
-            MemWord? currAddr = GetPropertyAddress(targetPropId);
-            if (currAddr == (MemWord)null)
+            MemWord? propAddr = GetPropertyAddress(targetPropId);
+            if (propValue == (MemWord)null)
                 throw new ArgumentException("PutPropertyValue called for nonexistent property");
 
-            MemByte sizeByte = _memory.ReadByte(currAddr);
-            currAddr++;
+            MemByte sizeByte = _memory.ReadByte(propAddr - 1);
 
             byte propLen;
             if ((sizeByte & 0b10000000).Value == 0b10000000)
             {
-                MemByte sizeByte2 = _memory.ReadByte(currAddr);
-                currAddr++;
-                propLen = (sizeByte2 & 0b00111111).Value;
+                propLen = (sizeByte & 0b00111111).Value;
                 if (propLen == 0x00)
                     propLen = 64; //as per spec 12.4.2.1.1
             }
@@ -173,11 +165,11 @@ namespace ZAnGian
             if (propLen == 1)
             {
                 //as per spec, when len == 1 save only least significant byte
-                _memory.WriteByte(currAddr, (byte)(propValue.FullValue & 0xff));
+                _memory.WriteByte(propAddr, (byte)(propValue.FullValue & 0xff));
             }
             else if (propLen == 2)
             {
-                _memory.WriteWord(currAddr, propValue.FullValue);
+                _memory.WriteWord(propAddr, propValue.FullValue);
             }
             else
                 throw new ArgumentException("PutPropertyValue called when propLen > 2");
@@ -187,7 +179,6 @@ namespace ZAnGian
         public override MemWord? GetNextPropertyId(ushort startPropId)
         {
             MemWord? propAddr;
-            MemWord currAddr;
             MemByte sizeByte;
 
 
@@ -199,19 +190,16 @@ namespace ZAnGian
             else
             {
                 //start from the given startPropId
-                currAddr = GetPropertyAddress(startPropId);
-                if (currAddr == (MemWord)null)
+                propAddr = GetPropertyAddress(startPropId);
+                if (propAddr == (MemWord)null)
                     throw new ArgumentException("GetNextPropertyId called for nonexistent property"); //as per spec
 
-                sizeByte = _memory.ReadByte(currAddr);
-                currAddr++;
+                sizeByte = _memory.ReadByte(propAddr-1);
 
                 byte propLen;
                 if ((sizeByte & 0b10000000).Value == 0b10000000)
                 {
-                    MemByte sizeByte2 = _memory.ReadByte(currAddr);
-                    currAddr++;
-                    propLen = (sizeByte2 & 0b00111111).Value;
+                    propLen = (sizeByte & 0b00111111).Value;
                     if (propLen == 0x00)
                         propLen = 64; //as per spec 12.4.2.1.1
                 }
@@ -220,7 +208,7 @@ namespace ZAnGian
                     propLen = (byte)((sizeByte & 0b01000000).Value == 0b01000000 ? 2 : 1);
                 }
 
-                propAddr = currAddr + propLen;
+                propAddr += propLen;
             }
 
 

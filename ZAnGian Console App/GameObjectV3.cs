@@ -47,9 +47,8 @@ namespace ZAnGian
 
             while (true)
             {
-                MemWord currAddr = new MemWord(propAddr.Value); //a simple assignment works by reference
-                MemByte sizeByte = _memory.ReadByte(currAddr);
-                currAddr++;
+                MemByte sizeByte = _memory.ReadByte(propAddr);
+                propAddr++;
 
                 if (sizeByte == 0x00)
                     return null;
@@ -61,13 +60,13 @@ namespace ZAnGian
                     return propAddr;
                 }
 
-                propAddr = currAddr + propLen;
+                propAddr = propAddr + propLen;
             }
         }
 
         public static MemByte GetPropertyLength(ZMemory memory, MemWord propAddr)
         {
-            MemByte sizeByte = memory.ReadByte(propAddr);
+            MemByte sizeByte = memory.ReadByte(propAddr-1);
             Debug.Assert(sizeByte != 0x00);
 
             return ((sizeByte >> 5) + 1);
@@ -75,18 +74,17 @@ namespace ZAnGian
 
         public override MemValue? GetPropertyValue(ushort targetPropId)
         {
-            MemWord? currAddr = GetPropertyAddress(targetPropId);
-            if (currAddr == (MemWord)null)
+            MemWord? propAddr = GetPropertyAddress(targetPropId);
+            if (propAddr == (MemWord)null)
                 return null;
 
-            MemByte sizeByte = _memory.ReadByte(currAddr);
-            currAddr++;
+            MemByte sizeByte = _memory.ReadByte(propAddr-1);
             ushort propLen = ((sizeByte >> 5) + 1).Value;
 
             if (propLen == 1)
-                return _memory.ReadByte(currAddr);
+                return _memory.ReadByte(propAddr);
             else if (propLen == 2)
-                return _memory.ReadWord(currAddr);
+                return _memory.ReadWord(propAddr);
             else
                 throw new ArgumentException("GetPropertyValue called when propLen > 2");
         }
@@ -98,17 +96,17 @@ namespace ZAnGian
             if (propAddr == (MemWord)null)
                 throw new ArgumentException("PutPropertyValue called for nonexistent property");
 
-            MemByte sizeByte = _memory.ReadByte(propAddr);
+            MemByte sizeByte = _memory.ReadByte(propAddr-1);
             ushort propLen = ((sizeByte >> 5) + 1).Value;
 
             if (propLen == 1)
             {
                 //as per spec, when len == 1 save only least significant byte
-                _memory.WriteByte(propAddr+1, (byte)(propValue.FullValue & 0xff));
+                _memory.WriteByte(propAddr, (byte)(propValue.FullValue & 0xff));
             }
             else if (propLen == 2)
             {
-                _memory.WriteWord(propAddr+1, propValue.FullValue);
+                _memory.WriteWord(propAddr, propValue.FullValue);
             }
             else
                 throw new ArgumentException("PutPropertyValue called when propLen > 2");
@@ -133,10 +131,10 @@ namespace ZAnGian
                 if (propAddr == (MemWord)null)
                     throw new ArgumentException("GetNextPropertyId called for nonexistent property"); //as per spec
 
-                sizeByte = _memory.ReadByte(propAddr);
+                sizeByte = _memory.ReadByte(propAddr-1);
                 ushort propLen = ((sizeByte >> 5) + 1).Value;
 
-                propAddr += propLen + 1; //skip to next property
+                propAddr += propLen; //skip to next property
             }
 
 
