@@ -5,11 +5,36 @@ namespace ZAnGian
 {
     public partial class ZProcessor
     {
-        private void OpcodeDec(OperandType[] operandTypes, MemValue[] operands)
+        private void OpcodeCall1N(MemValue[] operands)
+        {
+            _logger.Debug($"CALL_1N {operands[0]}");
+
+            MemValue packedAddr = operands[0];
+
+            MemValue[] args = new MemValue[0];
+
+            CallRoutine(packedAddr, args, null);
+        }
+
+        private void OpcodeCall1S(MemValue[] operands)
+        {
+            _logger.Debug($"CALL_1S {operands[0]}");
+
+            MemValue packedAddr = operands[0];
+
+            MemValue[] args = new MemValue[0];
+
+            MemByte storeVar = _memory.ReadByte(_pc);
+            _pc++;
+
+            CallRoutine(packedAddr, args, storeVar);
+        }
+
+
+        private void OpcodeDec(MemValue[] operands)
         {
             _logger.Debug($"DEC {operands[0]}");
 
-            //Debug.Assert(operandTypes[0] == OperandType.Variable);
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
             MemWord varValue = ReadVariable(varId);
@@ -88,7 +113,7 @@ namespace ZAnGian
             _logger.Debug($"GET_SIBLING {operands[0]}");
             UInt16 retValue;
 
-            GameObjectId objId = (GameObjectId)operands[0];
+            GameObjectId objId = operands[0];
             if (objId.FullValue == 0x00)
             {
                 retValue = 0x00;
@@ -109,11 +134,10 @@ namespace ZAnGian
         }
 
 
-        private void OpcodeInc(OperandType[] operandTypes, MemValue[] operands)
+        private void OpcodeInc(MemValue[] operands)
         {
             _logger.Debug($"INC {operands[0]}");
 
-            //Debug.Assert(operandTypes[0] == OperandType.Variable);
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
             MemWord varValue = ReadVariable(varId);

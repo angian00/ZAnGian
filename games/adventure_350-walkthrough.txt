@@ -1,0 +1,362 @@
+             $adventure walkthrough
+          rev. by Jessica Allan 08/02/97
+
+This will RUIN the game for you.  Do not use it unless you
+are truly desperate to stop playing and get on with your
+life.  Since I have documented it quite thoroughly, this
+will ruin it more than any other walkthrough, and even 
+contains some of the ending.
+
+This is an adaptation of Sean L. Palmer's walkthrough, with 
+better documentation and some improvements made.  
+
+These commands will not work in every single game.  There 
+are some variants, such as get/take, and this will not work
+for the 430 point, 550 point, 660 point, 501 point, 551 
+point, or 370 point versions.  That means that the Windows
+version does not conform to this, although the documentation
+*may* be helpful.  
+
+I highly recommend Rick Adams' page:
+http://www.winternet.com/~radams/adventure/
+This contains the walkthroughs, tips, history, links to an
+FTP site providing source code and compiled versions for 
+DOS/Windows, Amiga, Macintosh, OS/2, and UNIX, and maps.
+Even with this documentation, you can *still* get lost due 
+to some contingencies in the game, such as backtracking to
+compensate for piracy, dwarves, and a few other things.
+
+For those reasons, you cannot feed this through input 
+redirection, although, if you're astute enough, you could 
+probably write some mild AI code and feed this through.  But
+I doubt anyone would bother.
+
+I can guarantee that this version will work with Adventure
+on the Web at Stanford's machine:
+http://tjwww.stanford.edu/adventure.html
+That is the version I tested it with, and I have kept the
+original format that was used, such as five letter packing
+and such that was output from the other machine.  How close
+this is to the original version, I can't say.
+I recommend the Web version if you're running a 14.4 
+connection or higher, since the Windows version is a bit
+outdated anyway.
+
+Enjoy playing, and I'm sorry I had to do this to you.  But
+if it wasn't for this walkthrough, I never would have gotten
+on with *my* life.  :)
+
+************************************************************
+building  /*  This will take you to the building, a well 
+              house for a large spring  */
+take lamp  /*  This is vital.  It will reappear in the 
+               building should you be reincarnated  */
+   /*  You can only hold seven items at a time.  Water and
+       oil are separate items from their bottles.  */
+light lamp  /* Some variants want on lamp.  Whatever.  */
+xyzzy  /*  A magic word, this will automagically bring you
+           to the building and back.  Works only from 
+           here.  */
+e   /*  Ignore the rod.  */
+take cage  /*  This is for the bird you'll catch soon.  */
+pit  /*  At your feet is a small pit...  */
+e  /*  This is the bird chamber...  */
+take bird  /*  ...where you catch the bird.  */
+w  /*  return to pit  */
+d  /*  Hall of Mists  */
+s  /*  Nugget of Gold room  */
+take gold  /*  1st treasure  */
+n  /*  Back to the Hall of Mists  */
+n  /*  Hall of the Mountain King  */
+free bird  /*  The little bird attacks the green snake, and
+               in an astounding flurry drives the snake 
+               away.   */
+drop cage  /*  not a treasure  */
+s  /*  Southside chamber  */
+take jewel  /*  treasure  */
+n  /*  Back to Hall of Mountain King  */
+w  /*  Westside chamber  */
+take coins  /*  treasure  */
+e  /*  Back to Hall of Mountain King  */
+n  /*  Low N/S passage  */
+take silve  /*  treasure  */
+n  /*  Y2  */
+plover  /*  Plover is another magic word.  This takes you
+            to the Plover room, elsewhere in the cave.  So
+            called because it has an emerald the size of 
+            a plover's egg.  */
+ne  /*  Dark-Room  */
+take plati  /*  treasure  */
+s  /*  Back to Plover room  */
+plover  /*  Saying this here teleports you back to Y2.  */
+plugh  /*  Another magic word that does the same as xyzzy. 
+           Works only from Y2.  */
+/*  If any dwarves have already arrived, restart!  */
+/*  Treasures are only awarded full points if they are 
+    dropped in the building.  */
+drop plati
+drop coins
+drop jewel
+drop silve
+drop gold
+take bottl  /*  Water will come with it.  */
+take food  /*  You'll need to feed a hungry bear.  */
+take keys  /*  You'll need these to unlock a tame bear.  */
+plugh  /*  Return to Y2.  */
+/*  Soon, a dwarf will arrive, throw an axe at you, curse,
+    and run away.  Take this axe when you see it.  There 
+    are seven dwarves in the cave.  When you see one, throw
+    the axe at it.  "throw axe"  If it misses, take it and
+    throw it again.  If you just ignore the dwarf, 
+    reinforcements will show up and you will inevitably get
+    killed.  */
+s  /*  Low N/S passage  */
+d  /*  Dirty broken passage  */
+bedquilt  /*  This takes you to Bedquilt, an E/W passage
+              with a lot of rooms adjoining it.  */
+slab  /*  Slab Room  */
+s  /*  West end of Twopit Room  */
+d  /*  West pit  */
+water plant  /*  It should grow 12 feet tall and demand 
+                 more water.  */
+u  /*  West end of Twopit Room  */
+w  /*  Slab Room  */
+u  /*  Secret N/S canyon  */
+reservoir  /*  Refill your water bottle here  */
+fill bottle  /*  Don't want a thirsty plant, do you?  */
+s  /*  Mirror Canyon  */
+s  /*  Secret N/S canyon  */
+d  /*  Slab Room  */
+s  /*  West end of the Twopit Room  */
+d  /*  West pit  */
+water plant  /*  It now grows 25 feet tall and stretches
+                 up to that elusive hole.  */
+u  /*  West end of Twopit Room  */
+e  /*  East end of Twopit Room  */
+d  /*  East pit.  There is a puddle of oil here.  */
+fill bottle  /*  You'll need this oil for a rusty door.  */
+u  /*  East end of Twopit Room  */
+w  /*  West end of Twopit Room  */
+d  /*  West pit  */
+climb plant  /*  Aren't you glad you watered it?  */
+w  /*  Giant Room  */
+take eggs  /*  Fee, Fie, Foe, Foo has more significance than
+               you think.  Typing it in this room will 
+               teleport the eggs back here.  They are a 
+               treasure item, but you must toss them to the
+               troll to cross the bridge.  */
+n  /*  End of N/S passage.  The way north is barred by a
+       massive rusty iron door.  */
+oil door  /*  Now, it will open.  */
+drop bottl  /*  You no longer need this.  */
+n  /*  Cavern with waterfall  */
+take tride  /*  This is needed for opening a clam shell
+                  which contains a pearl.  Both are treasure
+                  items.  */
+w  /*  Steep incline above large room  */
+d  /*  Large low room  */
+sw  /*  Sloping corridor  */
+u  /*  SW side of chasm  */
+/*  Try typing "kill troll" or "throw axe" here for 
+    kicks.  */
+toss eggs  /*  The troll will take these and scurry out of 
+               sight.  */
+cross  /*  NE side of chasm  */
+ne  /*  E/W Corridor  */
+/*  The rumbling noise you hear here is a completely 
+    pointless volcano.  Seriously.  */
+barren  /*  Front of Barren Room.  */
+e  /*  Barren room.  */
+feed bear  /*  This will calm down the bear.  */
+open chain  /*  Open with keys, obviously.  */
+drop keys  /*   You no longer need these.  */
+take chain  /*  treasure  */
+take bear  /*  You are being followed by a very large tame
+               bear.  */
+w  /*  Front of Barren Room.  */
+fork  /*  Fork in path  */
+ne  /*  Warm Walls Junction.  */
+e  /*  Chamber of Boulders.  */
+take spice  /*  treasure  */
+fork  /*  Fork in path  */
+w  /*  E/W Corridor  */
+w  /*  NE side of chasm  */
+cross  /*  Still on NE side of chasm  */
+free bear  /*  Scare a new troll every day...  */
+cross  /*  SW side of chasm  */
+sw  /*  Sloping corridor  */
+d  /*  Large low room  */
+bedquilt  /*  Back to Bedquilt.  */
+e  /*  Complex junction  */
+n  /*  Shell room  */
+/*  A nightmare that happened to no few of us was having 
+    the pirate show up *now* and take the trident.  */
+open clam  /*  Since when did clams have pearls?  */
+/*  Note that the clam is now identified for game purposes
+    as an oyster.  :)  */
+d  /*  Ragged corridor  */
+d  /*  Cul-de-sac  */
+take pearl  /*  treasure  */
+u  /*  Ragged corridor  */
+u  /*  Shell room  */
+s  /*  Complex junction  */ 
+u  /*  Dusty Rock room  */
+e  /*  Dirty passage  */
+u  /*  Low N/S passage  */ 
+n  /*  Back to Y2  */
+plugh  /*  Return to building  */
+drop chain
+drop spice
+drop tride
+drop pearl
+plugh  /*  Back to Y2  */
+s  /*  Low N/S passage  */
+d  /*  Dirty broken passage  */
+bedquilt  /*  Back to Bedquilt  */
+w  /*  Swiss Cheese room  */
+oriental  /*  This is the Oriental room, home to a Ming 
+              vase.  */
+   /*  Do NOT take the vase now.  If you do, you'll have
+       to drop it soon and it will shatter.  Also, don't
+       fill it with water or oil.  Not that that's all that
+       accessible...  */
+n  /*  Misty Cavern  */
+w  /*  Alcove  */
+drop lamp  /*  Don't turn it off first.  */
+drop axe  
+e  /*  Plover room  */
+take emera  /*  Don't suppose you remember this?  */
+w  /*  Alcove  */
+take axe  
+take lamp
+nw  /*  Misty Cavern  */
+s  /*  Oriental Room  */
+take vase  /*  Now, there's no reason for you to drop it. */
+se  /*  Swiss Cheese room  */
+e  /*  Soft Room  */
+take pillo  /*  Something soft for the vase to land on.  */
+w  /*  Swiss Cheese Room  */
+w  /*  East end of Twopit Room  */
+w  /*  West end of Twopit Room  */
+d  /*  West pit  */
+climb plant  /*  Emerge in the narrow corridor  */
+w  /*  Giant Room  */
+fee  /*  Magic words, remember?  */
+fie
+foe
+foo
+take eggs  /*  Wonder how that troll feels about this.  */
+s  /*  Narrow corridor  */
+d  /*  West pit  */
+u  /*  West end of Twopit Room  */
+w  /*  Slab Room  */
+u  /*  Secret N/S canyon  */
+s  /*  Secret canyon, complete with dragon  */
+kill dragon
+yes  /*  Unbelievable, isn't it?  */
+take rug  /*  treasure  */
+e  /*  Secret E/W canyon above tight canyon  */
+e  /*  Hall of Mountain King  */
+n  /*  Low N/S passage  */
+n  /*  Back to Y2.  */
+plugh  /*  Return to building.  */
+drop rug  
+drop pillo  /*  It doesn't generally matter which order you
+                 drop things in, but be sure to drop the 
+                 pillow before the vase.  */
+drop vase
+drop emera
+drop eggs
+xyzzy  /*  Debris room.  */
+take wand  /*  This is a magic wand.  */
+pit  /*  Back to the top of the pit.  */
+d  /*  Hall of Mists  */
+w  /*  East bank of fissure  */
+wave wand  /*  A crystal bridge will span the fissure.  */
+w  /*  West side of fissure  */
+take diamo  /*  Hope that the pirate steals this.  */
+w  /*  Should be at the west end of the Hall of Mists.  */
+/*  Save your game at this point.  You may not run into the
+    pirate in time and you could have your lamp run out.
+    Of course, if you've already seen the pirate, then 
+    forget that advice.  */
+/*  If you were truly unlucky and got robbed by the pirate
+    when you were on your way to Y2, then drop your axe 
+    here.  You cannot have been carrying more than 5 
+    treasure items, and there will be 6 when you arrive at
+    the chest -- the 5 treasures and the chest.  Return 
+    and get your axe as soon as you drop off the items.
+    Also in that case, double back to Y2 and drop off as
+    much as possible.  It is probably a better idea to
+    ditch your axe at Y2 and then save your game and hope
+    that no dwarves arrive.  */
+s  /*  You are in a maze of twisty passages, all alike... */
+e  /*  Hope that the pirate shows up while you're headed to 
+       his lair.  */
+s  /*  Could you imagine being stuck in here and having no
+       clue where you're going, just trying to get out?  */
+s
+s
+n
+e  /*  You should be on the brink of a pit at this point. 
+       If you're not, you're in trouble.  */
+n
+e
+nw  /*  This is a dead end where the Pirate's chest is.  */
+   /*  If the pirate hasn't shown by now, you are fighting
+       for a lost cause, but you can try typing in the 
+       following sequence until he shows:
+       se n w w w e e w s n s s s n e n e nw
+       If he appears while you're typing this, just finish
+       the sequence... don't try to backtrack.  The maze is
+       asymmetrical.  */
+take chest  /*  treasure  */
+take diamo  /*  Also take anything else he stole.  */
+se
+n  /*  Brink of pit.  */
+d  /*  Bird chamber.  */
+debris  /*  Back to the debris room.  */
+xyzzy  /*  Return to building  */
+drop wand  /*  This isn't a treasure, but do it anyway.  */
+drop chest  
+drop diamo
+plugh  /*  Back to Y2.  */
+s  /*  Low N/S passage  */      
+d  /*  Dirty passage  */
+bedquilt  /*  Back to Bedquilt.  */
+e  /*  Complex junction.  */
+e  /*  Anteroom  */
+take magaz  /*  Spelunker Today?  */
+e  /*  Witt's End  */
+drop magaz /*  Last point (276) in beginner section.  */
+n  /*  Type this repeatedly until you escape Witt's End  */
+   /*  Other directions work, as long as they're not w, nw,
+       or sw... that would be too logical!  */
+/*  Right now, you should hear an announcement in a 
+    "sepulcheral voice" saying,  "Cave closing soon.  All 
+    adventurers exit immediately through Main Office."  
+    This is a sign that you have gotten all the treasures 
+    and the endgame is about to begin.  After leaving 
+    Witt's End, go someplace with light, like near the 
+    grate or the plover room, turn off your lamp, and just
+    kill time, generally by dropping and picking up your 
+    axe.  Your lamp is really close to running out.  Don't
+    go anywhere that doesn't have light.  */
+/*  If you should find your way to Y2 (which I usually do)
+    while trying to get back to the Plover room, typing 
+    "plover" still works, but typing "plugh" gives you this
+    message:  A mysterious recorded voice groans into life 
+    and announces: "This exit is closed. Please leave via 
+    Main Office."  */
+/*  Eventually, the sepulcheral voice will speak again and 
+    say, "The Cave is now closed."  There's a blinding
+    flash of light and a puff of orange smoke.  You are
+    teleported to the Colossal Cave repository.  I refuse 
+    to tell you its contents, but it's quite cute.  :)  */
+sw  /*  SW end of repository  */
+take rod  /*  Dy-no-mite!  */
+ne  /*  NE end of repository  */
+drop rod  
+sw  /*  Get out of blast range  */
+blast  /*  A cheering band of friendly elves carry the
+           conquering adventurer off into the sunset.  */

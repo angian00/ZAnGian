@@ -68,10 +68,9 @@ namespace ZAnGian
                 if (sizeByte == 0x00)
                     return null;
 
-                byte propId;
+                byte propId = (sizeByte & 0b00111111).Value;
                 if ((sizeByte & 0b10000000).Value == 0b10000000)
                 {
-                    propId = (sizeByte & 0b00111111).Value;
                     MemByte sizeByte2 = _memory.ReadByte(propAddr);
                     propAddr++;
                     propLen = (sizeByte2 & 0b00111111).Value;
@@ -80,7 +79,6 @@ namespace ZAnGian
                 }
                 else
                 {
-                    propId = (sizeByte & 0b00011111).Value;
                     propLen = (byte) ( (sizeByte & 0b01000000).Value == 0b01000000 ? 2 : 1 );
                 }
 

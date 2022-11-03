@@ -7,7 +7,7 @@ Supports version 3 files.
 
 
 ## TODO
-- extended form opcodes
+- try some storyfile with solutions
 
 
 - ... all new opcodes
@@ -24,9 +24,15 @@ Supports version 3 files.
 + output stream 2 (game transcript)
 + (maybe) window-related commands
 
+
 ### Details
 - any terminating characters in read
 - fix unicode extension table
+
+
+## Tested games
+- strictz.z5
+
 
 ## Resources
 Z-Machine Specification: 

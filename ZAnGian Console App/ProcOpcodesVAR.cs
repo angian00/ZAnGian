@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Reflection.Emit;
 
 namespace ZAnGian
 {
@@ -21,7 +22,6 @@ namespace ZAnGian
 
             MemByte storeVar = _memory.ReadByte(_pc);
             _pc++;
-
 
             string inputStr = _input.ReadLine(); //TODO: check any terminating char for v5
             //_logger.All($"input string: {inputStr}");
@@ -57,7 +57,7 @@ namespace ZAnGian
 
         private void OpcodeCallVN(int nOps, MemValue[] operands)
         {
-            _logger.Debug($"CALLVN {FormatOperands(nOps, operands)}");
+            _logger.Debug($"CALL_VN {FormatOperands(nOps, operands)}");
 
             MemValue packedAddr = operands[0];
 
@@ -70,12 +70,26 @@ namespace ZAnGian
             CallRoutine(packedAddr, args, null);
         }
 
-
-        private void OpcodeCheckArgCount(int nOps, MemValue[] operands)
+        private void OpcodeCallVN2(int nOps, MemValue[] operands)
         {
-            _logger.Debug($"CHECK_ARG_COUNT {FormatOperands(nOps, operands)}");
+            _logger.Debug($"CALL_VN2 {FormatOperands(nOps, operands)}");
 
-            ushort argNum = operands[0].FullValue;
+            MemValue packedAddr = operands[0];
+
+            MemValue[] args = new MemValue[nOps - 1];
+            for (byte i = 1; i < nOps; i++)
+            {
+                args[i - 1] = operands[i];
+            }
+
+            CallRoutine(packedAddr, args, null);
+        }
+
+        private void OpcodeCallVS2(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"CALL_VS2 {FormatOperands(nOps, operands)}");
+
+            MemValue packedAddr = operands[0];
 
             MemValue[] args = new MemValue[nOps - 1];
             for (byte i = 1; i < nOps; i++)
@@ -86,7 +100,17 @@ namespace ZAnGian
             MemByte storeVar = _memory.ReadByte(_pc);
             _pc++;
 
-            Branch(_stack.CurrRoutineData.NumArgs <= argNum);
+            CallRoutine(packedAddr, args, storeVar);
+        }
+
+
+        private void OpcodeCheckArgCount(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"CHECK_ARG_COUNT {FormatOperands(nOps, operands)}");
+
+            ushort argNum = operands[0].FullValue;
+
+            Branch(argNum <= _stack.CurrRoutineData.NumArgs);
         }
 
 
@@ -123,8 +147,7 @@ namespace ZAnGian
         {
             _logger.Debug($"PULL {FormatOperands(nOps, operands)}");
 
-            GameVariableId storeVar = _memory.ReadByte(_pc).Value;
-            _pc++;
+            GameVariableId storeVar = (GameVariableId)operands[0].FullValue;
 
             MemWord value = _stack.PopValue();
             WriteVariable(storeVar, value);
@@ -203,14 +226,19 @@ namespace ZAnGian
         }
 
 
+        private void OpcodeSetTextStyle(int nOps, MemValue[] operands)
+        {
+            //throw new NotImplementedException($"Unimplemented opcode: SET_TEXT_STYLE"); //TODO
+        }
+
         private void OpcodeSetWindow(int nOps, MemValue[] operands)
         {
-            throw new NotImplementedException($"Unimplemented opcode: SET_WINDOW"); //TODO
+            //throw new NotImplementedException($"Unimplemented opcode: SET_WINDOW"); //TODO
         }
 
         private void OpcodeSplitWindow(int nOps, MemValue[] operands)
         {
-            throw new NotImplementedException($"Unimplemented opcode: SPLIT_WINDOW"); //TODO
+            //throw new NotImplementedException($"Unimplemented opcode: SPLIT_WINDOW"); //TODO
         }
 
         private void OpcodeSRead(int nOps, MemValue[] operands)

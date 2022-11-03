@@ -27,47 +27,47 @@ namespace ZAnGian
         */
         private void Branch(bool condition)
         {
-            MemWord targetOffset;
+            short targetOffset;
             bool branchOnTrue;
 
             ComputeBranchOffset(out targetOffset, out branchOnTrue);
             BranchOnCondition(condition, targetOffset, branchOnTrue);
         }
 
-        private void ComputeBranchOffset(out MemWord targetOffset, out bool branchOnTrue)
+        private void ComputeBranchOffset(out short targetOffset, out bool branchOnTrue)
         {
             MemByte addr1 = _memory.ReadByte(_pc);
-            branchOnTrue = ((addr1.Value & 0b10000000) == 0b10000000);
-            bool addrOn1Byte = ((addr1.Value & 0b01000000) == 0b01000000);
+            branchOnTrue = ((addr1.Value & 0b1000_0000) == 0b1000_0000);
+            bool addrOn1Byte = ((addr1.Value & 0b0100_0000) == 0b0100_0000);
 
             if (addrOn1Byte)
             {
-                targetOffset = new MemWord(addr1.Value & 0b00111111);
+                targetOffset = (short)(addr1.Value & 0b0011_1111);
                 _pc++;
             }
             else
             {
-                targetOffset = new MemWord(((addr1.Value & 0b00111111) << 8) + _memory.ReadByte(_pc + 1).Value);
+                targetOffset = NumberUtils.Signed14Bits(((addr1.Value & 0b0011_1111) << 8) + _memory.ReadByte(_pc + 1).Value);
                 _pc += 2;
             }
         }
 
-        private void BranchOnCondition(bool condition, MemWord targetOffset, bool branchOnTrue)
+        private void BranchOnCondition(bool condition, short targetOffset, bool branchOnTrue)
         {
             if ((condition && branchOnTrue) || (!condition && !branchOnTrue))
             {
                 //jump
-                if (targetOffset.SignedValue == 0x00)
+                if (targetOffset == 0x00)
                 {
                     ReturnRoutine(MemWord.FromBool(false));
                 }
-                else if (targetOffset.SignedValue == 0x01)
+                else if (targetOffset == 0x01)
                 {
                     ReturnRoutine(MemWord.FromBool(true));
                 }
                 else
                 {
-                    _pc += targetOffset.SignedValue - 2;
+                    _pc += targetOffset - 2;
                 }
             }
         }

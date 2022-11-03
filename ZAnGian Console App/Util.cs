@@ -53,4 +53,24 @@ namespace ZAnGian
         }
     }
 
+    public class NumberUtils
+    {
+        public static short BitShift(short val, short places, bool preserveSign)
+        {
+            if (!preserveSign)
+                val = (short)(val & 0b0111_1111_1111_1111);
+
+            return (short)(val << places);
+        }
+
+        public static short Signed14Bits(int value14bits)
+        {
+            bool isNegative = ((value14bits & 0b0010_0000_0000_0000) == 0b0010_0000_0000_0000);
+
+            if (isNegative)
+                return (short)(value14bits - (1 << 14));
+            else
+                return (short)value14bits;
+        }
+    }
 }
