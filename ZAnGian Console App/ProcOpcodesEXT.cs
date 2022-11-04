@@ -36,8 +36,7 @@ namespace ZAnGian
         private void OpcodePictureTable(int nOps, MemValue[] operands)
         {
             _logger.Debug($"PICTURE_TABLE {operands[0]}");
-
-            //TODO: PICTURE_TABLE
+            //TODO: implement PICTURE_TABLE
         }
 
 
@@ -46,7 +45,7 @@ namespace ZAnGian
             _logger.Debug($"SAVE {FormatOperands(nOps, operands)}");
             _logger.Debug($"defaulting to 0OP save -->");
             
-            //TODO: use extra arguments
+            //TODO: use extra save arguments
 
             OpcodeSave();
         }
@@ -56,7 +55,11 @@ namespace ZAnGian
         {
             _logger.Debug($"WINDOW_STYLE {operands[0]} {operands[1]} {operands[2]}");
 
-            //TODO: WINDOW_STYLE
+            ushort windowId = operands[0].FullValue;
+            ushort bitmask = operands[1].FullValue;
+            ushort operation = nOps > 2 ? operands[2].FullValue : (ushort)0x00;
+
+            _screen.SetWindowStyle(windowId, bitmask, operation);
         }
 
     }

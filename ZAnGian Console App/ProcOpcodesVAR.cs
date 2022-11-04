@@ -226,19 +226,42 @@ namespace ZAnGian
         }
 
 
+        private void OpcodeSetCursor(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"SET_CURSOR {FormatOperands(nOps, operands)}");
+
+            short line = operands[0].SignedValue;
+            short col  = operands[1].SignedValue;
+
+            _screen.SetCursorPos(line, col);
+        }
+
         private void OpcodeSetTextStyle(int nOps, MemValue[] operands)
         {
-            //throw new NotImplementedException($"Unimplemented opcode: SET_TEXT_STYLE"); //TODO
+            _logger.Debug($"SET_TEXT_STYLE {FormatOperands(nOps, operands)}");
+
+            ushort textStyle = operands[0].FullValue;
+
+            _screen.SetTextStyle(textStyle);
+
         }
 
         private void OpcodeSetWindow(int nOps, MemValue[] operands)
         {
-            //throw new NotImplementedException($"Unimplemented opcode: SET_WINDOW"); //TODO
+            _logger.Debug($"SET_WINDOW {FormatOperands(nOps, operands)}");
+
+            short windowId = operands[0].SignedValue;
+
+            _screen.SetCurrWindow(windowId);
         }
 
         private void OpcodeSplitWindow(int nOps, MemValue[] operands)
         {
-            //throw new NotImplementedException($"Unimplemented opcode: SPLIT_WINDOW"); //TODO
+            _logger.Debug($"SPLIT_WINDOW {FormatOperands(nOps, operands)}");
+
+            ushort nLines = operands[0].FullValue;
+
+            _screen.SplitWindow(nLines);
         }
 
         private void OpcodeSRead(int nOps, MemValue[] operands)

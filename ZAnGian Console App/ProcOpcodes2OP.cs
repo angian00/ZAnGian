@@ -364,7 +364,11 @@ namespace ZAnGian
         private void OpcodeSetColour(MemValue[] operands)
         {
             _logger.Debug($"SET_COLOUR {operands[0]} {operands[1]}");
-            //TODO: set_colour foreground background
+
+            ushort fgColour = operands[0].FullValue;
+            ushort bgColour = operands[0].FullValue;
+
+            _screen.SetColour(fgColour, bgColour);
         }
 
         private void OpcodeStore(OperandType[] operandTypes, MemValue[] operands)
@@ -427,7 +431,7 @@ namespace ZAnGian
         private void OpcodeThrow(MemValue[] operands)
         {
             _logger.Debug($"THROW {operands[0]} {operands[1]}");
-            //TODO: throw
+            throw new NotImplementedException("Not implemented: THROW"); //TODO: implement throw
         }
 
     }

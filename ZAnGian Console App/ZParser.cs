@@ -121,7 +121,7 @@ namespace ZAnGian
             string word = inputStr.Substring(wordStart, nWordLetters);
             MemWord dictWordAddr = SearchDict(word);
 
-            _memory.WriteWord(parseBufferAddr + 2 + (iWord * 4), dictWordAddr); //FIXME: dictionary sizes for v5
+            _memory.WriteWord(parseBufferAddr + 2 + (iWord * 4), dictWordAddr);
             _memory.WriteByte(parseBufferAddr + 2 + (iWord * 4) + 2, nWordLetters);
             _memory.WriteByte(parseBufferAddr + 2 + (iWord * 4) + 3, (byte)(wordStart + 2));
         }
