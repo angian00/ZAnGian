@@ -65,22 +65,21 @@ namespace ZAnGian
             //for (int iInstr = 0; iInstr < 10000; iInstr++)
             {
                 byte opcodeByte = _memory.ReadByte(_pc).Value;
-                _logger.All($"sp={_pc.Value} [{_pc}]: {StringUtils.ByteToBinaryString(opcodeByte)}");
+                _logger.All($"pc={_pc.Value} [{_pc}]: {StringUtils.ByteToBinaryString(opcodeByte)}");
                 _pc++;
 
                 OpCodeForm form;
 
-                if ((opcodeByte >> 6) == 0b10)
+                if (opcodeByte == 0xbe)
+                    form = OpCodeForm.Extended;
+                else if ((opcodeByte >> 6) == 0b10)
                     form = OpCodeForm.Short;
                 else if ((opcodeByte >> 6) == 0b11)
                     form = OpCodeForm.Variable;
-                else if (opcodeByte == 0xbe)
-                    form = OpCodeForm.Extended;
                 else
                     form = OpCodeForm.Long;
 
 
-                bool isVAR = false;
                 byte opcode = 0x00; //nonexistent opcode as default
                 byte opTypeBits;
                 byte nOps = 0;
@@ -172,7 +171,7 @@ namespace ZAnGian
                 }
 
                 MemValue[] operands = ReadOperands(operandTypes);
-                if (!UsesIndirectRefs(isVAR, nOps, opcode))
+                if (!UsesIndirectRefs((opcodeCat == OpCodeCategory.VAR), nOps, opcode))
                     DereferenceVariables(operandTypes, ref operands);
                     
                 RunOpCode(opcodeCat, opcode, nOps, operandTypes, operands);
@@ -368,7 +367,6 @@ namespace ZAnGian
                             break;
 
                         default:
-                            //throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
                             throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
                     }
 
@@ -434,6 +432,9 @@ namespace ZAnGian
                             break;
 
                         case 0x0E:
+                            Debug.Assert(false, "Unintercepted EXT opcode");
+                            break;
+
                         case 0x0F:
                             throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
 
@@ -665,6 +666,12 @@ namespace ZAnGian
                         case 0x03:
                             OpcodeArtShift(nOps, operands);
                             break;
+
+
+                        case 0x09:
+                            OpcodeSaveUndo(nOps, operands);
+                            break;
+
 
                         case 0x0E:
                         case 0x0F:

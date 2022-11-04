@@ -19,15 +19,16 @@ Supports version 3 files.
 - 9.1: sound effects
 
 
-+ 8.7: new screen model
 + word wrapping
 + output stream 2 (game transcript)
-+ (maybe) window-related commands
 
 
 ### Details
 - any terminating characters in read
 - fix unicode extension table
+
+### Bugs
+- custom status line
 
 
 ## Tested games

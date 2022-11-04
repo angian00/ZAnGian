@@ -51,7 +51,7 @@ namespace ZAnGian
 
             this.Flags1 = ReadByte(0x01);
 
-            this.GameRelease = ReadWord(0x02); //CHECK
+            this.GameRelease = ReadWord(0x02);
 
             this.BaseHighMem = ReadWord(0x04);
             this.StartPC = ReadWord(0x06);
@@ -92,6 +92,10 @@ namespace ZAnGian
 
             Zscii.SetTranslationTable(this, ReadWord(0x34));
 
+
+            //-- update writeable fields with interpreter-dependent info
+            WriteByte(0x1e, (byte)'A');
+            WriteByte(0x1f, (byte)'Z');
 
             //specify missing interpreter features
             this.Flags2 &= 0b11101111; //no undo
@@ -329,6 +333,16 @@ namespace ZAnGian
             WriteNBytes(4, targetAddr.Value, val);
         }
 
+        public bool CompareBytes(MemWord targetAddr, byte[] data, ushort dataLen)
+        {
+            for (int i=0; i< dataLen; i++)
+            {
+                if (Data[targetAddr.Value + i] != data[i])
+                    return false;
+            }
+
+            return true;
+        }
 
         private bool IsWritable(int targetAddr)
         {

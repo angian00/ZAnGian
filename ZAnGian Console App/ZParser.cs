@@ -130,10 +130,13 @@ namespace ZAnGian
         {
             MemWord memAddr = _dictEntriesAddr;
 
+            byte[] wordEncoded = Zscii.EncodeText(word, _memory.DictEntryTextLen);
+
+            //FIXME: use binary search for dictionary entries
             for (ushort iDictEntry=0; iDictEntry < _numDictEntries; iDictEntry ++)
             {
-                string dictWord = Zscii.DecodeText(_memory, memAddr, out _, _memory.DictEntryTextLen);
-                if (dictWord == word)
+                bool match = _memory.CompareBytes(memAddr, wordEncoded, _memory.DictEntryTextLen);
+                if (match)
                     return memAddr;
 
                 memAddr += _dictEntrySize;

@@ -1,12 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net;
-using System.Reflection.Emit;
 using System.Text;
-using static System.Formats.Asn1.AsnWriter;
-using static System.Reflection.Metadata.BlobBuilder;
-using static ZAnGian.Zscii;
 
 namespace ZAnGian
 {
@@ -157,44 +153,41 @@ namespace ZAnGian
         }
 
 
-        public static string DecodeText(ZMemory memory, MemWord startAddr, out ushort nBytesRead, ushort nBytesToRead=ushort.MaxValue)
+        public static string DecodeText(byte[] data, ushort startAddr, out ushort nBytesRead, ushort nBytesToRead = ushort.MaxValue, ZMemory? memory = null)
         {
             StringBuilder sb = new();
             Alphabet currAlphabet = Alphabet.Lowercase;
 
-            byte[] data = memory.Data;
-
-            ushort start = startAddr.Value;
-            ushort i = start;
+            ushort i = startAddr;
             int abbrIndex = -1;
             bool isMultiChar = false; //multi-char: see spec 3.4
             byte multiChar1 = 0xff;
 
-            while (i < start + nBytesToRead)
+            while (i < startAddr + nBytesToRead)
             {
-                //Console.WriteLine($"decoding data 0x{data[i]:x2} 0x{data[i+1]:x2}");
+                //Console.WriteLine($"decoding data 0x{data[iStr]:x2} 0x{data[iStr+1]:x2}");
                 byte ch1 = (byte)((data[i] & 0b01111100) >> 2);
-                byte ch2 = (byte)( ((data[i] & 0b00000011) << 3) + ((data[i + 1] & 0b11100000) >> 5) );
+                byte ch2 = (byte)(((data[i] & 0b00000011) << 3) + ((data[i + 1] & 0b11100000) >> 5));
                 byte ch3 = (byte)(data[i + 1] & 0b00011111);
-                
+
                 foreach (byte ch in new byte[] { ch1, ch2, ch3 })
                 {
                     if (abbrIndex != -1)
                     {
-                        //lookup abbreviation
-                        // If z is the first Z - character(1, 2 or 3) and x the subsequent one, then the interpreter must look up
-                        // entry 32(z - 1) + x in the abbreviations table and print the string at that word address.
-                        MemWord abbrStringAddr = memory.ReadWord((ushort)(0x42 + 32 * abbrIndex + ch));
-                        //MemWord abbrStringAddr = new MemWord(memory.ReadByte((ushort)(0x42 + 32 * abbrIndex + ch)).Value);
-                        abbrStringAddr *= 2; //abbr table addresses are "word addresses"
-                        sb.Append(DecodeText(memory, abbrStringAddr, out _));
+                        if (memory != null)
+                        {
+                            //lookup abbreviation
+                            MemWord abbrStringAddr = memory.ReadWord((ushort)(0x42 + 32 * abbrIndex + ch));
+                            abbrStringAddr *= 2; //abbr table addresses are "word addresses"
+                            sb.Append(DecodeText(data, abbrStringAddr.Value, out _));
+                        }
                         abbrIndex = -1;
                         continue;
                     }
 
                     if (isMultiChar)
                     {
-                        if (multiChar1 == 0xff)
+                        if (multiChar1 == 0xff) //multiChar1 not set yet?
                             multiChar1 = ch;
                         else
                         {
@@ -244,22 +237,84 @@ namespace ZAnGian
 
                 i += 2;
             }
-            
-            nBytesRead = (ushort) (i - start);
+
+            nBytesRead = (ushort)(i - startAddr);
 
             return sb.ToString();
         }
 
 
-        public static char ZChar2Ascii(byte zchar, Alphabet alphabet=Alphabet.Lowercase)
+        //currently works only with no multi-char extensions
+        public static byte[] EncodeText(string asciiText, ushort nBytesToWrite)
         {
-            //Debug.Assert(zchar >= 0x06 && zchar <= 0x2f, $"Invalid zchar 0x{zchar:x2}");
-            //DEBUG
+            List<byte> textData = new();
+
+            int strLen = asciiText.Length;
+
+            Alphabet currAlphabet = Alphabet.Lowercase;
+            for (int iStr=0; iStr<strLen; iStr++)
+            {
+                char ch = asciiText[iStr];
+                if (_alphabetChars[Alphabet.Lowercase].Contains(ch))
+                {
+                    textData.Add(Ascii2ZChar(ch, Alphabet.Lowercase));
+                }
+                else if (_alphabetChars[Alphabet.Uppercase].Contains(ch))
+                {
+                    textData.Add(0x04); //switch next char to Uppercase
+                    textData.Add(Ascii2ZChar(ch, Alphabet.Uppercase));
+                }
+                else if (_alphabetChars[Alphabet.Punctuation].Contains(ch))
+                {
+                    textData.Add(0x05); //switch next char to Punctuation
+                    textData.Add(Ascii2ZChar(ch, Alphabet.Punctuation));
+                }
+                else
+                {
+                    Debug.Assert(false, "Invalid input char"); //FIXME: sanitize input in ZInput
+                }
+            }
+
+            int textDataLen = textData.Count;
+            byte[] encodedData = new byte[nBytesToWrite];
+
+            int iDataIn = 0;
+            int iDataOut = 0;
+            while (iDataOut < nBytesToWrite)
+            {
+                byte ch1 = iDataIn     < textDataLen ? textData[iDataIn]     : (byte)0x05;
+                byte ch2 = iDataIn + 1 < textDataLen ? textData[iDataIn + 1] : (byte)0x05;
+                byte ch3 = iDataIn + 2 < textDataLen ? textData[iDataIn + 2] : (byte)0x05;
+
+                encodedData[iDataOut]    = (byte)(ch1 << 2);
+                encodedData[iDataOut]   |= (byte)(ch2 >> 3);
+                encodedData[iDataOut+1]  = (byte)((ch2 & 0b0111) << 5);
+                encodedData[iDataOut+1] |= (byte)(ch3);
+
+                if (iDataOut == nBytesToWrite - 2)
+                    encodedData[iDataOut] |= 0b1000_0000; //set MSB for first byte of last couple
+
+                iDataIn += 3;
+                iDataOut += 2;
+            }
+
+            return encodedData;
+        }
+
+        public static char ZChar2Ascii(byte zchar, Alphabet alphabet = Alphabet.Lowercase)
+        {
             if ((zchar < 0x06) || (zchar > 0x2f))
                 return '?';
-            //
 
-            return _alphabetChars[alphabet][zchar-0x06];
+            return _alphabetChars[alphabet][zchar - 0x06];
+        }
+
+        public static byte Ascii2ZChar(char ch, Alphabet alphabet = Alphabet.Lowercase)
+        {
+            int pos = _alphabetChars[alphabet].IndexOf(ch);
+            Debug.Assert(pos >= 0);
+
+            return (byte)(pos + 0x06);
         }
 
 

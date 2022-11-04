@@ -195,7 +195,7 @@ namespace ZAnGian
             _logger.Debug($"PRINT_ADDR {operands[0]}");
 
             MemWord targetAddr = new MemWord(operands[0].FullValue);
-            string msg = Zscii.DecodeText(_memory, targetAddr, out _);
+            string msg = Zscii.DecodeText(_memory.Data, targetAddr.Value, out _, memory: _memory);
 
             _screen.Print(msg);
         }
@@ -218,7 +218,7 @@ namespace ZAnGian
             _logger.Debug($"PRINT_PADDR {operands[0]}");
 
             MemWord targetAddr = UnpackAddress(operands[0]);
-            string msg = Zscii.DecodeText(_memory, targetAddr, out _);
+            string msg = Zscii.DecodeText(_memory.Data, targetAddr.Value, out _, memory: _memory);
 
             _screen.Print(msg);
         }

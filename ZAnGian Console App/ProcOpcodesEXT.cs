@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Numerics;
 
 namespace ZAnGian
 {
@@ -44,10 +45,24 @@ namespace ZAnGian
         {
             _logger.Debug($"SAVE {FormatOperands(nOps, operands)}");
             _logger.Debug($"defaulting to 0OP save -->");
-            
+
             //TODO: use extra save arguments
 
             OpcodeSave();
+        }
+
+
+        private void OpcodeSaveUndo(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"SAVE_UNDO {FormatOperands(nOps, operands)}");
+
+            //TODO: OpcodeSaveUndo
+
+
+            MemByte storeVar = _memory.ReadByte(_pc);
+            _pc++;
+
+            WriteVariable(storeVar.Value, new MemWord(0xffff));
         }
 
 
