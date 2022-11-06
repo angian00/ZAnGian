@@ -61,7 +61,10 @@ namespace ZAnGian
         {
             if (_level >= msgLevel)
             {
-                _writer.WriteLine($"\u001b[{Colors[msgLevel]}m{msg}\u001b[0m");
+                if (msgLevel >= LogLevel.DEBUG)
+                    _writer.WriteLine(msg);
+                else
+                    _writer.WriteLine($"\u001b[{Colors[msgLevel]}m{msg}\u001b[0m");
                 _writer.Flush();
             }
         }

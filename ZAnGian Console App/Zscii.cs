@@ -223,7 +223,7 @@ namespace ZAnGian
                     }
                     else
                     {
-                        sb.Append(ZChar2Ascii(ch, currAlphabet));
+                        sb.Append(ZChar2Zscii(ch, currAlphabet));
                         currAlphabet = Alphabet.Lowercase;
                     }
                 }
@@ -244,30 +244,36 @@ namespace ZAnGian
         }
 
 
-        //currently works only with no multi-char extensions
         public static byte[] EncodeText(string asciiText, ushort nBytesToWrite)
+        {
+            ushort inputLen = (ushort)asciiText.Length;
+            byte[] inputBuffer = Ascii2Zscii(asciiText);
+
+            return EncodeText(inputBuffer, 0, inputLen, nBytesToWrite);
+        }
+
+
+        //currently works only with no multi-char extensions
+        public static byte[] EncodeText(byte[] inputBuffer, ushort startOffset, ushort inputLen, ushort nBytesToWrite=UInt16.MaxValue)
         {
             List<byte> textData = new();
 
-            int strLen = asciiText.Length;
-
-            Alphabet currAlphabet = Alphabet.Lowercase;
-            for (int iStr=0; iStr<strLen; iStr++)
+            for (int iStr=0; iStr < inputLen; iStr++)
             {
-                char ch = asciiText[iStr];
+                char ch = (char)inputBuffer[startOffset + iStr];
                 if (_alphabetChars[Alphabet.Lowercase].Contains(ch))
                 {
-                    textData.Add(Ascii2ZChar(ch, Alphabet.Lowercase));
+                    textData.Add(Zscii2ZChar(ch, Alphabet.Lowercase));
                 }
                 else if (_alphabetChars[Alphabet.Uppercase].Contains(ch))
                 {
                     textData.Add(0x04); //switch next char to Uppercase
-                    textData.Add(Ascii2ZChar(ch, Alphabet.Uppercase));
+                    textData.Add(Zscii2ZChar(ch, Alphabet.Uppercase));
                 }
                 else if (_alphabetChars[Alphabet.Punctuation].Contains(ch))
                 {
                     textData.Add(0x05); //switch next char to Punctuation
-                    textData.Add(Ascii2ZChar(ch, Alphabet.Punctuation));
+                    textData.Add(Zscii2ZChar(ch, Alphabet.Punctuation));
                 }
                 else
                 {
@@ -301,7 +307,7 @@ namespace ZAnGian
             return encodedData;
         }
 
-        public static char ZChar2Ascii(byte zchar, Alphabet alphabet = Alphabet.Lowercase)
+        public static char ZChar2Zscii(byte zchar, Alphabet alphabet = Alphabet.Lowercase)
         {
             if ((zchar < 0x06) || (zchar > 0x2f))
                 return '?';
@@ -309,12 +315,25 @@ namespace ZAnGian
             return _alphabetChars[alphabet][zchar - 0x06];
         }
 
-        public static byte Ascii2ZChar(char ch, Alphabet alphabet = Alphabet.Lowercase)
+        public static byte Zscii2ZChar(char ch, Alphabet alphabet = Alphabet.Lowercase)
         {
             int pos = _alphabetChars[alphabet].IndexOf(ch);
             Debug.Assert(pos >= 0);
 
             return (byte)(pos + 0x06);
+        }
+
+
+        public static string Zscii2Ascii(byte[] zsciiText, ushort start, ushort textLen)
+        {
+            char[] asciiChars = new char[textLen];
+
+            for (int i = 0; i < textLen; i++)
+            {
+                asciiChars[i] = Zscii2Ascii(zsciiText[start + i]);
+            }
+
+            return String.Concat(asciiChars);
         }
 
 
@@ -338,6 +357,19 @@ namespace ZAnGian
             }
         }
 
+        public static byte[] Ascii2Zscii(string asciiStr)
+        {
+            List<byte> res = new();
+
+            foreach (char ch in asciiStr)
+            {
+                Debug.Assert(Ascii2Zscii(ch) <= 0xff); //extended chars not supported here
+                res.Add((byte)Ascii2Zscii(ch));
+            }
+
+            return res.ToArray();
+        }
+
         public static int Ascii2Zscii(char ch)
         {
             switch (ch)
@@ -347,7 +379,7 @@ namespace ZAnGian
                 case ' ': return 11;
                 case '\n': return 13;
 
-                case >= (char)32 and <= (char)126: return (int)ch;
+                case >= (char)32 and <= (char)126: return ch;
                     
                 default: 
                     if (_extendedAscii2ZsciiTable.ContainsKey((int)ch))

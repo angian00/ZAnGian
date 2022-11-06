@@ -6,44 +6,22 @@ namespace ZAnGian
 {
     public class ZParser
     {
-        ZMemory _memory;
-        List<char> _wordSeparators;
-        byte _dictEntrySize;
-        ushort _numDictEntries;
-        MemWord _dictEntriesAddr;
+        private ZMemory _memory;
+        private List<char> _wordSeparators;
+        private byte _dictEntrySize;
+        private ushort _numDictEntries;
+        private MemWord _currDictAddr;
 
 
         public ZParser(ZMemory memory)
         {
             _memory = memory;
-            MemWord memAddr = _memory.DictionaryLoc;
-
-            byte nWordSeps = _memory.ReadByte(memAddr).Value;
-            memAddr++;
-
-            _wordSeparators = new List<char>();
-            for (int i = 0; i < nWordSeps; i++)
-            {
-                char wordSep = Zscii.Zscii2Ascii(_memory.ReadByte(memAddr).Value);
-                _wordSeparators.Add(wordSep);
-
-                memAddr++;
-            }
-
-            _dictEntrySize = _memory.ReadByte(memAddr).Value;
-            memAddr++;
-
-            _numDictEntries = _memory.ReadWord(memAddr).Value;
-            memAddr += 2;
-
-            _dictEntriesAddr = memAddr;
         }
 
-
         /**
-         * See spec 13.*
+         * Returns normalized (lowercase, truncated) inputStr
          */
-        public void ParseInput(string inputStr, MemWord textBufferAddr, MemWord parseBufferAddr)
+        public string StoreInput(string inputStr, MemWord textBufferAddr)
         {
             int nMaxChars = _memory.ReadByte(textBufferAddr).Value; //plus 0x00 string terminator
 
@@ -52,12 +30,44 @@ namespace ZAnGian
                 inputStr = inputStr.Substring(0, nMaxChars);
 
             _memory.WriteByte(textBufferAddr + 1, new MemByte(inputStr.Length));
-            for (byte iChar = 0; iChar < inputStr.Length; iChar++)
-                _memory.WriteByte(textBufferAddr + 2 + iChar, new MemByte(Zscii.Ascii2Zscii(inputStr[iChar]))); 
-
             if (inputStr.Length == 0)
-                return;
+                return "";
 
+            for (byte iChar = 0; iChar < inputStr.Length; iChar++)
+                _memory.WriteByte(textBufferAddr + 2 + iChar, new MemByte(Zscii.Ascii2Zscii(inputStr[iChar])));
+
+            return inputStr;
+        }
+
+        public void ParseInput(MemWord textBufferAddr, MemWord parseBufferAddr, string inputStr)
+        {
+            ParseInput(textBufferAddr, parseBufferAddr, inputStr, null, false);
+        }
+
+        public void ParseInput(MemWord textBufferAddr, MemWord parseBufferAddr, MemWord dictAddr, bool skipUnrecognizedWords)
+        {
+            ParseInput(textBufferAddr, parseBufferAddr, null, dictAddr, skipUnrecognizedWords);
+        }
+
+
+        /**
+         * See spec 13.*
+         */
+        private void ParseInput(MemWord textBufferAddr, MemWord parseBufferAddr, string? inputStr, MemWord? dictAddr, bool skipUnrecognizedWords)
+        {
+            byte inputLen = _memory.ReadByte(textBufferAddr + 1).Value;
+
+            if (inputStr == null)
+            {
+                //inputStr is not pre-compute, compute it from textBuffer
+                inputStr = "";
+                for (byte iChar = 0; iChar < inputLen; iChar++)
+                    inputStr += Zscii.Zscii2Ascii(_memory.ReadByte(textBufferAddr + 2 + iChar).Value);
+            }
+
+            if (dictAddr == (MemWord)null || dictAddr.Value == 0x00)
+                dictAddr = new MemWord(_memory.DictionaryLoc.Value);
+            ComputeDictMetrics(dictAddr);
 
             int nMaxParsedWords = _memory.ReadByte(parseBufferAddr).Value;
 
@@ -70,16 +80,18 @@ namespace ZAnGian
             bool insideWord = false;
             bool wasSep;
 
-            for (byte iChar = 0; iChar < inputStr.Length; iChar++)
+            for (byte iChar = 0; iChar < inputLen; iChar++)
             {
                 wasSep = isSep;
                 isAlphaNum = false;
                 isSep = false;
                 isSpace = false;
 
-                if (inputStr[iChar] == ' ')
+                char currChar = Zscii.Zscii2Ascii(_memory.ReadByte(textBufferAddr + 2 + iChar).Value);
+
+                if (currChar == ' ')
                     isSpace = true;
-                else if (_wordSeparators.Contains(inputStr[iChar]))
+                else if (_wordSeparators.Contains(currChar))
                     isSep = true;
                 else
                     isAlphaNum = true;
@@ -114,9 +126,35 @@ namespace ZAnGian
             _memory.WriteByte(parseBufferAddr + 1, nParsedWords);
         }
 
+
+        private void ComputeDictMetrics(MemWord dictAddr)
+        {
+            MemWord memAddr = new MemWord(dictAddr.Value);
+
+            byte nWordSeps = _memory.ReadByte(memAddr).Value;
+            memAddr++;
+
+            _wordSeparators = new List<char>();
+            for (int i = 0; i < nWordSeps; i++)
+            {
+                char wordSep = Zscii.Zscii2Ascii(_memory.ReadByte(memAddr).Value);
+                _wordSeparators.Add(wordSep);
+
+                memAddr++;
+            }
+
+            _dictEntrySize = _memory.ReadByte(memAddr).Value;
+            memAddr++;
+
+            _numDictEntries = _memory.ReadWord(memAddr).Value;
+            memAddr += 2;
+
+            _currDictAddr = memAddr;
+        }
+
+
         private void WriteParsedWord(byte iWord, string inputStr, int wordStart, int wordEnd, MemWord parseBufferAddr)
         {
-            // as per 'read' opcode spec
             byte nWordLetters = (byte)(wordEnd - wordStart);
             string word = inputStr.Substring(wordStart, nWordLetters);
             MemWord dictWordAddr = SearchDict(word);
@@ -126,9 +164,10 @@ namespace ZAnGian
             _memory.WriteByte(parseBufferAddr + 2 + (iWord * 4) + 3, (byte)(wordStart + 2));
         }
 
+
         private MemWord SearchDict(string word)
         {
-            MemWord memAddr = _dictEntriesAddr;
+            MemWord memAddr = _currDictAddr;
 
             byte[] wordEncoded = Zscii.EncodeText(word, _memory.DictEntryTextLen);
 

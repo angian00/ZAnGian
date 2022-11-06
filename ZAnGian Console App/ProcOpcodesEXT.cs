@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Numerics;
+using System.Text;
 
 namespace ZAnGian
 {
@@ -20,6 +21,18 @@ namespace ZAnGian
         }
 
 
+        private void OpcodeCheckUnicode(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"CHECK_UNICODE {FormatOperands(nOps, operands)}");
+
+            MemByte storeVar = _memory.ReadByte(_pc);
+            _pc++;
+
+            //we support all 2-byte unicode charCodes
+            WriteVariable(storeVar.Value, new MemWord(0x01));
+        }
+
+
         private void OpcodeLogShift(int nOps, MemValue[] operands)
         {
             _logger.Debug($"LOG_SHIFT {operands[0]} {operands[1]}");
@@ -34,17 +47,43 @@ namespace ZAnGian
         }
 
 
-        private void OpcodePictureTable(int nOps, MemValue[] operands)
+        private void OpcodePrintUnicode(int nOps, MemValue[] operands)
         {
-            _logger.Debug($"PICTURE_TABLE {operands[0]}");
-            //TODO: implement PICTURE_TABLE
+            _logger.Debug($"PRINT_UNICODE {FormatOperands(nOps, operands)}");
+
+            ushort charCode = operands[0].FullValue;
+            // CHECK unicode encoding
+            byte[] rawUnicode = new byte[] { (byte)(charCode & 0xff), (byte)(charCode >> 8)};
+
+            string unicodeStr = Encoding.Unicode.GetString(rawUnicode);
+            _screen.Print(unicodeStr);
+        }
+
+
+        private void OpcodeRestoreExt(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"RESTORE {FormatOperands(nOps, operands)}");
+            _logger.Warn($"defaulting to 0OP restore -->");
+
+            //TODO: use extra restore arguments
+
+            OpcodeRestore();
+        }
+
+
+        private void OpcodeRestoreUndo(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"RESTORE_UNDO {FormatOperands(nOps, operands)}");
+
+            _logger.Warn($"TODO: implement RESTORE_UNDO");
+
         }
 
 
         private void OpcodeSaveExt(int nOps, MemValue[] operands)
         {
             _logger.Debug($"SAVE {FormatOperands(nOps, operands)}");
-            _logger.Debug($"defaulting to 0OP save -->");
+            _logger.Warn($"defaulting to 0OP save -->");
 
             //TODO: use extra save arguments
 
@@ -56,26 +95,34 @@ namespace ZAnGian
         {
             _logger.Debug($"SAVE_UNDO {FormatOperands(nOps, operands)}");
 
-            //TODO: OpcodeSaveUndo
-
-
             MemByte storeVar = _memory.ReadByte(_pc);
             _pc++;
+
+            _logger.Warn($"TODO: implement SAVE_UNDO");
 
             WriteVariable(storeVar.Value, new MemWord(0xffff));
         }
 
 
-        private void OpcodeWindowStyle(int nOps, MemValue[] operands)
+        private void OpcodeSetFont(int nOps, MemValue[] operands)
         {
-            _logger.Debug($"WINDOW_STYLE {operands[0]} {operands[1]} {operands[2]}");
+            _logger.Debug($"SET_FONT {FormatOperands(nOps, operands)}");
+            
+            //byte fontId = (byte)operands[0].FullValue;
+            MemByte storeVar = _memory.ReadByte(_pc);
+            _pc++;
 
-            ushort windowId = operands[0].FullValue;
-            ushort bitmask = operands[1].FullValue;
-            ushort operation = nOps > 2 ? operands[2].FullValue : (ushort)0x00;
+            _logger.Warn($"TODO: implement SET_FONT");
 
-            _screen.SetWindowStyle(windowId, bitmask, operation);
+            WriteVariable(storeVar.Value, new MemWord(0x00));
         }
 
+
+        private void OpcodeSetTrueColour(int nOps, MemValue[] operands)
+        {
+            _logger.Debug($"SET_TRUE_COLOUR {FormatOperands(nOps, operands)}");
+
+            _logger.Warn($"TODO: implement SET_TRUE_COLOUR");
+        }
     }
 }

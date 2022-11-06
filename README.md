@@ -10,17 +10,30 @@ Supports version 3 files.
 - try some storyfile with solutions
 
 
-- ... all new opcodes
+- opcodes
+	- screen
+		- erase_window
+		- erase_line
+		- set_truecolour
+
+	- unicode
+		- (bugfixing header extension table)
+
+	- throw, catch
+
+	- input/output stream
+	- sound effect
+
 
 - special routine calls:
 	- timed keyboard input
 	- end of audio effects
-- 8.1.1: set size of font
-- 9.1: sound effects
+- sound effects
 
 
 + word wrapping
 + output stream 2 (game transcript)
++ GUI ZScreen implementation
 
 
 ### Details
@@ -33,6 +46,7 @@ Supports version 3 files.
 
 ## Tested games
 - strictz.z5
+- acorncourt.z5
 
 
 ## Resources

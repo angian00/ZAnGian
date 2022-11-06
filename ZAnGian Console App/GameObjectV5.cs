@@ -5,6 +5,9 @@ namespace ZAnGian
 {
     public class GameObjectV5: GameObject
     {
+        private static Logger _logger = Logger.GetInstance();
+
+
         public GameObjectV5(GameObjectId iObj, MemWord baseAddr, ZMemory memory) : base(iObj, baseAddr, memory) { }
 
 
@@ -117,7 +120,7 @@ namespace ZAnGian
             if (propAddr == (MemWord)null)
                 return null;
 
-            MemByte sizeByte = _memory.ReadByte(propAddr-1);
+            MemByte sizeByte = _memory.ReadByte(propAddr - 1);
 
             byte propLen;
             if ((sizeByte & 0b10000000).Value == 0b10000000)
@@ -136,7 +139,11 @@ namespace ZAnGian
             else if (propLen == 2)
                 return _memory.ReadWord(propAddr);
             else
-                throw new ArgumentException("GetPropertyValue called when propLen > 2");
+            {
+                //throw new ArgumentException("GetPropertyValue called when propLen > 2");
+                _logger.Warn("GetPropertyValue called when propLen > 2");
+                return new MemWord(0xffff);
+            }
         }
 
 

@@ -4,6 +4,13 @@ namespace ZAnGian
 {
     public partial class ZProcessor
     {
+        private void OpcodeCatch()
+        {
+            _logger.Debug("CATCH");
+
+            throw new NotImplementedException("TODO: implement CATCH");
+        }
+
         private void OpcodeNewLine()
         {
             _logger.Debug("NEW_LINE");
@@ -20,6 +27,12 @@ namespace ZAnGian
         {
             _logger.Debug("POP");
             _stack.PopValue();
+        }
+
+        private void OpcodePiracy()
+        {
+            _logger.Debug("PIRACY");
+            Branch(true);
         }
 
         private void OpcodePrint()
@@ -140,12 +153,17 @@ namespace ZAnGian
 
         private void OpcodeShowStatus()
         {
+            _logger.Debug("SHOW_STATUS");
+
             _screen.PrintStatusLine(GetStatusInfo());
         }
 
         private void OpcodeVerify()
         {
-            //TODO: implement OpcodeVerify?
+            _logger.Debug("VERIFY");
+
+            _logger.Warn("TODO: implement OpcodeVerify");
+            Branch(true);
         }
     }
 }

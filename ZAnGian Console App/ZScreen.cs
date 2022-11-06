@@ -19,6 +19,29 @@ namespace ZAnGian
         Monospace = 8,
     }
 
+    public enum TermColor
+    {
+        ForegroundBlack = 30,
+        ForegroundRed = 31,
+        ForegroundGreen = 32,
+        ForegroundYellow = 33,
+        ForegroundBlue = 34,
+        ForegroundMagenta = 35,
+        ForegroundCyan = 36,
+        ForegroundWhite = 37,
+
+        BackgroundBlack = 30,
+        BackgroundRed = 31,
+        BackgroundGreen = 32,
+        BackgroundYellow = 33,
+        BackgroundBlue = 34,
+        BackgroundMagenta = 35,
+        BackgroundCyan = 36,
+        BackgroundWhite = 37,
+    }
+
+
+
     public class ZScreen
     {
 
@@ -30,6 +53,8 @@ namespace ZAnGian
         private WindowId _currWindow = WindowId.LowerWindow;
         private Dictionary<WindowId, CursorPosition> CursorPositions;
         private ushort _upperWindowSize = 0;
+        private TermColor _fgColour = TermColor.ForegroundWhite;
+        private TermColor _bgColour = TermColor.BackgroundBlack;
 
 
         public ZScreen()
@@ -49,6 +74,23 @@ namespace ZAnGian
             Console.Write(msg);
 
             StoreCursorPos();
+        }
+
+        public void PrintTable(string asciiText, ushort width, ushort height, ushort skip)
+        {
+            var startPos = GetCursorPos();
+
+            for (int iRow = 0; iRow < height; iRow++)
+            {
+                for (int iCol = 0; iCol < width; iCol++)
+                {
+                    string textLine = asciiText.Substring(iRow*width, width); //FIXME out of bounds for last line
+                    Console.Write(textLine);
+                }
+                
+                //next line
+                SetCursorPos(startPos.Line + skip + 1, startPos.Column);
+            }
         }
 
         public void PrintStatusLine(StatusInfo statusInfo)
@@ -91,9 +133,111 @@ namespace ZAnGian
         }
 
 
-        public void SetColour(int fgColour, int bgColour)
+        public void SetColour(int fgColourCode, int bgColourCode)
         {
-            _logger.Warn("TODO: implement SetColour");
+            switch (fgColourCode)
+            {
+                case 0:
+                    //keep current
+                    break;
+                case 1:
+                    //default
+                    _fgColour = TermColor.ForegroundWhite;
+                    break;
+                case 2:
+                    _fgColour = TermColor.ForegroundBlack;
+                    break;
+                case 3:
+                    _fgColour = TermColor.ForegroundRed;
+                    break;
+                case 4:
+                    _fgColour = TermColor.ForegroundGreen;
+                    break;
+                case 5:
+                    _fgColour = TermColor.ForegroundYellow;
+                    break;
+                case 6:
+                    _fgColour = TermColor.ForegroundBlue;
+                    break;
+                case 7:
+                    _fgColour = TermColor.ForegroundMagenta;
+                    break;
+                case 8:
+                    _fgColour = TermColor.ForegroundCyan;
+                    break;
+                case 9:
+                    _fgColour = TermColor.ForegroundWhite;
+                    break;
+                case 10:
+                    _logger.Warn($"Unsupported color code: {fgColourCode}");
+                    _fgColour = TermColor.ForegroundWhite;
+                    break;
+                case 11:
+                    _logger.Warn($"Unsupported color code: {fgColourCode}");
+                    _fgColour = TermColor.ForegroundWhite;
+                    break;
+                case 12:
+                    _logger.Warn($"Unsupported color code: {fgColourCode}");
+                    _fgColour = TermColor.ForegroundWhite;
+                    break;
+                default:
+                    _logger.Warn($"Invalid color code: {fgColourCode}");
+                    break;
+            }
+
+            int bgCode;
+            switch (bgColourCode)
+            {
+                case 0:
+                    //keep current
+                    break;
+                case 1:
+                    //default
+                    _bgColour = TermColor.BackgroundWhite;
+                    break;
+                case 2:
+                    _bgColour = TermColor.BackgroundBlack;
+                    break;
+                case 3:
+                    _bgColour = TermColor.BackgroundRed;
+                    break;
+                case 4:
+                    _bgColour = TermColor.BackgroundGreen;
+                    break;
+                case 5:
+                    _bgColour = TermColor.BackgroundYellow;
+                    break;
+                case 6:
+                    _bgColour = TermColor.BackgroundBlue;
+                    break;
+                case 7:
+                    _bgColour = TermColor.BackgroundMagenta;
+                    break;
+                case 8:
+                    _bgColour = TermColor.BackgroundCyan;
+                    break;
+                case 9:
+                    _bgColour = TermColor.BackgroundWhite;
+                    break;
+                case 10:
+                    _logger.Warn($"Unsupported color code: {bgColourCode}");
+                    _bgColour = TermColor.BackgroundWhite;
+                    break;
+                case 11:
+                    _logger.Warn($"Unsupported color code: {bgColourCode}");
+                    _bgColour = TermColor.BackgroundWhite;
+                    break;
+                case 12:
+                    _logger.Warn($"Unsupported color code: {bgColourCode}");
+                    _bgColour = TermColor.BackgroundWhite;
+                    break;
+                default:
+                    _logger.Warn($"Invalid color code: {bgColourCode}");
+                    break;
+            }
+
+            Console.Write($"{esc}[{(int)_fgColour}m");
+            Console.Write($"{esc}[{(int)_bgColour}m");
         }
 
         public void SetTextStyle(ushort newTextStyle)
@@ -130,9 +274,19 @@ namespace ZAnGian
             _upperWindowSize = nLines;
         }
 
-        public void SetWindowStyle(ushort windowId, ushort bitmask, ushort operation)
+        public CursorPosition GetCursorPos()
         {
-            _logger.Warn("TODO: implement SetWindowStyle");
+            if (_currWindow == WindowId.UpperWindow)
+                return new CursorPosition()
+                {
+                    Line = CursorPositions[_currWindow].Line,
+                    Column = CursorPositions[_currWindow].Column
+                };
+            else
+                return new CursorPosition() {
+                    Line = CursorPositions[_currWindow].Line - _upperWindowSize,
+                    Column = CursorPositions[_currWindow].Column
+                };
         }
 
         public void SetCursorPos(int line, int col)
@@ -144,7 +298,6 @@ namespace ZAnGian
 
             ApplyCursorPos();
         }
-
 
 
         private void StoreCursorPos()
@@ -159,10 +312,21 @@ namespace ZAnGian
             Console.CursorLeft = CursorPositions[_currWindow].Column - 1;
         }
 
+        public void EraseLine(ushort val)
+        {
+            _logger.Warn("TODO: implement EraseLine");
+        }
+
+        public void EraseWindow(short windowId)
+        {
+            _logger.Warn("TODO: implement EraseWindow");
+        }
+
+
     }
 
 
-    internal record CursorPosition
+    public record CursorPosition
     {
         public int Line { get; set; } = 0;
         public int Column { get; set; } = 0;

@@ -177,11 +177,11 @@ namespace ZAnGian
             WriteVariable(targetVarId, varValue);
         }
 
-        private void OpcodeNot(MemValue[] operands)
+        private void OpcodeNotV3(MemValue[] operands)
         {
             _logger.Debug($"NOT {operands[0]}");
 
-            MemWord value = new MemWord(operands[0].FullValue); //force to MemWord even if it is a MemByte
+            MemWord value = new MemWord(operands[0].FullValue);
 
             GameVariableId storeVar = _memory.ReadByte(_pc).Value;
             _pc++;

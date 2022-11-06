@@ -318,39 +318,62 @@ namespace ZAnGian
 
                         case 0x0A:
                             OpcodeSplitWindow(nOps, operands);
-                           //throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
                             break;
 
                         case 0x0B:
                             OpcodeSetWindow(nOps, operands);
-                            //throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
                             break;
 
                         case 0x0C:
                             OpcodeCallVS2(nOps, operands);
                             break;
 
+                        case 0x0D:
+                            OpcodeEraseWindow(nOps, operands);
+                            break;
+
+                        case 0x0E:
+                            OpcodeEraseLine(nOps, operands);
+                            break;
 
                         case 0x0F:
                             OpcodeSetCursor(nOps, operands);
+                            break;
+
+                        case 0x10:
+                            OpcodeGetCursor(nOps, operands);
                             break;
 
                         case 0x11:
                             OpcodeSetTextStyle(nOps, operands);
                             break;
 
+                        case 0x12:
+                            OpcodeBufferMode(nOps, operands);
+                            break;
+
                         case 0x13:
                             OpcodeOutputStream(nOps, operands);
-                            //throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
                             break;
 
                         case 0x14:
                             OpcodeInputStream(nOps, operands);
-                            //throw new NotImplementedException($"Unimplemented opcode: {opCodeStr}");
+                            break;
+
+                        case 0x15:
+                            OpcodeSoundEffect(nOps, operands);
                             break;
 
                         case 0x16:
                             OpcodeReadChar(nOps, operands);
+                            break;
+
+                        case 0x17:
+                            OpcodeScanTable(nOps, operands);
+                            break;
+
+                        case 0x18:
+                            OpcodeNotV5(nOps, operands);
                             break;
 
                         case 0x19:
@@ -361,6 +384,21 @@ namespace ZAnGian
                             OpcodeCallVN2(nOps, operands);
                             break;
 
+                        case 0x1B:
+                            OpcodeTokenise(nOps, operands);
+                            break;
+
+                        case 0x1C:
+                            OpcodeEncodeText(nOps, operands);
+                            break;
+
+                        case 0x1D:
+                            OpcodeCopyTable(nOps, operands);
+                            break;
+
+                        case 0x1E:
+                            OpcodePrintTable(nOps, operands);
+                            break;
 
                         case 0x1F:
                             OpcodeCheckArgCount(nOps, operands);
@@ -396,11 +434,17 @@ namespace ZAnGian
                             break;
 
                         case 0x05:
-                            OpcodeSave();
+                            if (_memory.ZVersion < 5)
+                                OpcodeSave();
+                            else
+                                throw new ArgumentException($"Invalid opcode for ZVersion=={_memory.ZVersion} : {opCodeStr}");
                             break;
 
                         case 0x06:
-                            OpcodeRestore();
+                            if (_memory.ZVersion < 5)
+                                OpcodeRestore();
+                            else
+                                throw new ArgumentException($"Invalid opcode for ZVersion=={_memory.ZVersion} : {opCodeStr}");
                             break;
 
                         case 0x07:
@@ -412,7 +456,10 @@ namespace ZAnGian
                             break;
 
                         case 0x09:
-                            OpcodePop();
+                            if (_memory.ZVersion < 5)
+                                OpcodePop();
+                            else
+                                OpcodeCatch();
                             break;
 
                         case 0x0A:
@@ -436,7 +483,8 @@ namespace ZAnGian
                             break;
 
                         case 0x0F:
-                            throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
+                            OpcodePiracy();
+                            break;
 
                         default:
                             Debug.Assert(false, "Unreachable");
@@ -472,6 +520,7 @@ namespace ZAnGian
                         case 0x05:
                             OpcodeInc(operands);
                             break;
+
                         case 0x06:
                             OpcodeDec(operands);
                             break;
@@ -510,7 +559,7 @@ namespace ZAnGian
 
                         case 0x0F:
                             if (_memory.ZVersion < 5)
-                                OpcodeNot(operands);
+                                OpcodeNotV3(operands);
                             else
                                 OpcodeCall1N(operands);
                             break;
@@ -659,6 +708,10 @@ namespace ZAnGian
                             OpcodeSaveExt(nOps, operands);
                             break;
 
+                        case 0x01:
+                            OpcodeRestoreExt(nOps, operands);
+                            break;
+
                         case 0x02:
                             OpcodeLogShift(nOps, operands);
                             break;
@@ -667,27 +720,43 @@ namespace ZAnGian
                             OpcodeArtShift(nOps, operands);
                             break;
 
+                        case 0x04:
+                            OpcodeSetFont(nOps, operands);
+                            break;
+
+                        case 0x05:
+                        case 0x06:
+                        case 0x07:
+                        case 0x08:
+                            throw new ArgumentException($"Invalid opcode (for ZVersion=={_memory.ZVersion}): {opcode}");
 
                         case 0x09:
                             OpcodeSaveUndo(nOps, operands);
                             break;
 
+                        case 0x0A:
+                            OpcodeRestoreUndo(nOps, operands);
+                            break;
+
+                        case 0x0B:
+                            OpcodePrintUnicode(nOps, operands);
+                            break;
+
+                        case 0x0C:
+                            OpcodeCheckUnicode(nOps, operands);
+                            break;
+
+                        case 0x0D:
+                            OpcodeSetTrueColour(nOps, operands);
+                            break;
 
                         case 0x0E:
                         case 0x0F:
                             throw new ArgumentException($"Invalid opcode: {opCodeStr}");
 
-                        case 0x12:
-                            OpcodeWindowStyle(nOps, operands);
-                            break;
-
-                        case 0x1C:
-                            OpcodePictureTable(nOps, operands);
-                            break;
-
 
                         default:
-                            throw new ArgumentException($"Invalid opcode (for ZVersion == 3): {opCodeStr}");
+                            throw new ArgumentException($"Invalid opcode (for ZVersion == {_memory.ZVersion}): {opCodeStr}");
                     }
 
                     break;

@@ -335,7 +335,7 @@ namespace ZAnGian
 
         public bool CompareBytes(MemWord targetAddr, byte[] data, ushort dataLen)
         {
-            for (int i=0; i< dataLen; i++)
+            for (int i = 0; i < dataLen; i++)
             {
                 if (Data[targetAddr.Value + i] != data[i])
                     return false;
@@ -343,6 +343,17 @@ namespace ZAnGian
 
             return true;
         }
+
+        public void CopyBytes(MemWord targetAddr, byte[] data, ushort dataLen=0xffff)
+        {
+            if (dataLen == 0xffff)
+                dataLen = (ushort)data.Length;
+
+            for (int i = 0; i < dataLen; i++)
+                Data[targetAddr.Value + i] = data[i];
+        }
+
+
 
         private bool IsWritable(int targetAddr)
         {
