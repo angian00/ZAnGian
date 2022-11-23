@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace ZAnGian
@@ -67,7 +68,7 @@ namespace ZAnGian
                 }
                 else
                 {
-                    _pc += targetOffset - 2;
+                    _pc = (UInt32)(_pc + targetOffset - 2);
                 }
             }
         }
@@ -75,7 +76,7 @@ namespace ZAnGian
 
         private void CallRoutine(MemValue packedAddr, MemValue[] args, MemByte storeVar)
         {
-            MemWord routineAddr = UnpackAddress(packedAddr);
+            HighMemoryAddress routineAddr = UnpackAddress(packedAddr);
 
             RoutineData newRoutine = new RoutineData();
             newRoutine.ReturnAddress = _pc;
@@ -205,16 +206,16 @@ namespace ZAnGian
             return sb.ToString();
         }
 
-        private MemWord UnpackAddress(MemValue packedAddr)
+        private HighMemoryAddress UnpackAddress(MemValue packedAddr)
         {
             if (_memory.ZVersion == 3)
-                return new MemWord(packedAddr.FullValue * 2);
+                return ((UInt32)packedAddr.FullValue * 2);
             else if (_memory.ZVersion == 5)
-                return new MemWord(packedAddr.FullValue * 4);
+                return ((UInt32)packedAddr.FullValue * 4);
             else
             {
                 Debug.Assert(false, "Unreachable");
-                return null;
+                return 0x00;
             }
         }
 

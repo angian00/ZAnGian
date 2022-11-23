@@ -153,12 +153,12 @@ namespace ZAnGian
         }
 
 
-        public static string DecodeText(byte[] data, ushort startAddr, out ushort nBytesRead, ushort nBytesToRead = ushort.MaxValue, ZMemory? memory = null)
+        public static string DecodeText(byte[] data, HighMemoryAddress startAddr, out ushort nBytesRead, ushort nBytesToRead = ushort.MaxValue, ZMemory? memory = null)
         {
             StringBuilder sb = new();
             Alphabet currAlphabet = Alphabet.Lowercase;
 
-            ushort i = startAddr;
+            UInt32 i = startAddr;
             int abbrIndex = -1;
             bool isMultiChar = false; //multi-char: see spec 3.4
             byte multiChar1 = 0xff;

@@ -14,7 +14,7 @@ namespace ZAnGian
         private UInt32 _currAddr;
         private byte[] _saveData;
 
-        private UInt32 _pc = UInt32.MaxValue;
+        private HighMemoryAddress _pc = UInt32.MaxValue;
         private ZMemory _memory;
         private ZStack _stack;
         private ZMemory _initialMemory;
@@ -26,11 +26,11 @@ namespace ZAnGian
             _stack = null;
         }
 
-        public GameSave(ZMemory memory, ZStack stack, MemWord pc, ZMemory initialMemory)
+        public GameSave(ZMemory memory, ZStack stack, HighMemoryAddress pc, ZMemory initialMemory)
         {
             _memory = memory;
             _stack = stack;
-            _pc = pc.Value;
+            _pc = pc;
             _initialMemory = initialMemory;
         }
 
@@ -84,7 +84,7 @@ namespace ZAnGian
             return true;
         }
 
-        public bool Restore(ref ZMemory memory, ref ZStack stack, ref MemWord pc, in ZMemory initialMemory)
+        public bool Restore(ref ZMemory memory, ref ZStack stack, ref HighMemoryAddress pc, in ZMemory initialMemory)
         {
             if (_saveData == null || _saveData.Length == 0)
             {
@@ -108,9 +108,7 @@ namespace ZAnGian
             memory = _memory;
             stack = _stack;
 
-            Debug.Assert(_pc <= UInt16.MaxValue);
-
-            pc = new MemWord((UInt16)_pc);
+            pc = _pc;
 
             return true;
         }
@@ -376,8 +374,7 @@ namespace ZAnGian
 
             UInt32 returnAddr = ReadNBytes(3);
             _currAddr += 3;
-            Debug.Assert(returnAddr <= UInt16.MaxValue);
-            rData.ReturnAddress = new MemWord((UInt16)returnAddr);
+            rData.ReturnAddress = returnAddr;
 
             byte flags = _saveData[_currAddr];//000pvvvv
             _currAddr ++;
@@ -418,7 +415,7 @@ namespace ZAnGian
 
         private void WriteStackFrame(RoutineData rData)
         {
-            WriteNBytes(3, (UInt32)(rData.ReturnAddress == (MemWord)null ? 0x00 : rData.ReturnAddress.Value));
+            WriteNBytes(3, rData.ReturnAddress);
             _currAddr += 3;
 
             byte flags = 0x00;

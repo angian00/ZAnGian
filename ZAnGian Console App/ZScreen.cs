@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ZAnGian
 {
@@ -8,6 +9,14 @@ namespace ZAnGian
         LowerWindow = 0,
         UpperWindow = 1,
     }
+
+
+    public enum StreamId
+    {
+        Screen= 1,
+        Transcript = 2,
+    }
+
 
     [Flags]
     public enum TextStyle
@@ -56,9 +65,20 @@ namespace ZAnGian
         private TermColor _fgColour = TermColor.ForegroundWhite;
         private TermColor _bgColour = TermColor.BackgroundBlack;
 
+        private HashSet<StreamId> _activeStreams = new HashSet<StreamId>();
+        private Dictionary<StreamId, TextWriter> _stream2Writer = new Dictionary<StreamId, TextWriter>();
+        private TextWriter _transcriptWriter = File.AppendText("game_session.txt");
 
-        public ZScreen()
+
+        public ZScreen(bool isTranscriptActive=false)
         {
+            _stream2Writer.Add(StreamId.Screen, Console.Out);
+            _stream2Writer.Add(StreamId.Transcript, _transcriptWriter);
+
+            _activeStreams.Add(StreamId.Screen);
+            if (isTranscriptActive)
+                _activeStreams.Add(StreamId.Transcript);
+
             //absolute screen positions
             CursorPositions = new Dictionary<WindowId, CursorPosition>();
             CursorPositions[WindowId.UpperWindow] = new CursorPosition() { Line = 1, Column = 1 };
@@ -66,15 +86,31 @@ namespace ZAnGian
 
             Console.Clear();
             Console.WriteLine(); //leave space for top status bar
+
+            _transcriptWriter.WriteLine();
         }
 
+
+        public void Dispose()
+        {
+            _transcriptWriter.WriteLine();
+            _transcriptWriter.Close();
+        }
 
         public void Print(string msg)
         {
-            Console.Write(msg);
+            //Console.Write(msg);
+            foreach (StreamId streamId in _activeStreams)
+            {
+                TextWriter writer = _stream2Writer[streamId];
+                writer.Write(msg);
+                writer.Flush();
+            }
 
-            StoreCursorPos();
+            if (_activeStreams.Contains(StreamId.Screen))
+                StoreCursorPos();
         }
+
 
         public void PrintTable(string asciiText, ushort width, ushort height, ushort skip)
         {
@@ -311,6 +347,18 @@ namespace ZAnGian
             Console.CursorTop = CursorPositions[_currWindow].Line - 1;
             Console.CursorLeft = CursorPositions[_currWindow].Column - 1;
         }
+
+
+        public void toggleStream(int streamId, bool enable)
+        {
+            //FIXME: set game header Flags2?
+
+            if (enable)
+                _activeStreams.Add((StreamId)streamId);
+            else
+                _activeStreams.Remove((StreamId)streamId);
+        }
+
 
         public void EraseLine(ushort val)
         {

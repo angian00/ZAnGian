@@ -37,7 +37,7 @@ namespace ZAnGian
 
         private ZInterpreter _interpreter;
         private ZMemory _memory;
-        private MemWord _pc; //Program Counter
+        private HighMemoryAddress _pc; //Program Counter
         private ZStack _stack;
         private ZParser _parser;
         private Random _rndGen;
@@ -49,12 +49,17 @@ namespace ZAnGian
         {
             _interpreter = interpreter;
             _memory = memory;
-            _pc = memory.StartPC;
+            _pc = memory.StartPC.Value;
             _stack = new ZStack();
             _parser = new ZParser(_memory);
             _rndGen = new Random();
-            _screen = new ZScreen();
+            _screen = new ZScreen(_memory.IsTranscriptOn);
             _input = new ZInput(_screen);
+        }
+
+        public void Dispose()
+        {
+            _screen.Dispose();
         }
 
         public void Run()
@@ -65,7 +70,7 @@ namespace ZAnGian
             //for (int iInstr = 0; iInstr < 10000; iInstr++)
             {
                 byte opcodeByte = _memory.ReadByte(_pc).Value;
-                _logger.All($"pc={_pc.Value} [{_pc}]: {StringUtils.ByteToBinaryString(opcodeByte)}");
+                _logger.All($"pc={_pc} [{_pc:x8}]: {StringUtils.ByteToBinaryString(opcodeByte)}");
                 _pc++;
 
                 OpCodeForm form;

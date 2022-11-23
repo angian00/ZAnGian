@@ -87,7 +87,7 @@ namespace ZAnGian
         public Stack<MemWord> ValueStack { get => _valueStack; }
 
         public int NumArgs;
-        public MemWord ReturnAddress;
+        public HighMemoryAddress ReturnAddress;
         public GameVariableId ReturnVariableId;
         public bool IgnoreReturnVariable = false;
 

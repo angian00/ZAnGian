@@ -1,0 +1,364 @@
+Resident data ends at 614, program starts at 614, file ends at f88
+
+Starting analysis pass at address 612
+
+End of analysis pass, low address = 614, high address = 968
+
+[Start of code]
+
+Main routine R0001, 0 locals
+
+       CALL_VS         R0014 -> Gef
+       QUIT            
+
+Routine R0002, 3 locals
+
+       JIN             L00,L01 [TRUE] L0002
+       PRINT           "@jin "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       PRINT           " => FALSE "
+       JZ              L02 [TRUE] L0001
+       PRINT_RET       "(incorrect)"
+L0001: PRINT_RET       "(correct)"
+L0002: PRINT           "@jin "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       PRINT           " => TRUE "
+       JZ              L02 [TRUE] L0003
+       PRINT_RET       "(correct)"
+L0003: PRINT_RET       "(incorrect)"
+
+Routine R0003, 3 locals
+
+       GET_CHILD       L00 -> L02 [TRUE] L0002
+       PRINT           "@get_child "
+       PRINT_NUM       L00
+       PRINT           " => "
+       PRINT_NUM       L02
+       JZ              L01 [TRUE] L0001
+       PRINT_RET       " (incorrect)"
+L0001: PRINT_RET       " (correct)"
+L0002: PRINT           "@get_child "
+       PRINT_NUM       L00
+       PRINT           " => "
+       PRINT_NUM       L02
+       JZ              L01 [TRUE] L0003
+       PRINT_RET       " (correct)"
+L0003: PRINT_RET       " (incorrect)"
+
+Routine R0004, 3 locals
+
+       GET_PARENT      L00 -> L02
+       PRINT           "@get_parent "
+       PRINT_NUM       L00
+       PRINT           " => "
+       PRINT_NUM       L02
+       JZ              L02 [TRUE] L0001
+       STORE           L02,#01
+L0001: JE              L01,L02 [FALSE] L0002
+       PRINT_RET       " (correct)"
+L0002: PRINT_RET       " (incorrect)"
+
+Routine R0005, 3 locals
+
+       GET_SIBLING     L00 -> L02 [TRUE] L0002
+       PRINT           "@get_sibling "
+       PRINT_NUM       L00
+       PRINT           " => "
+       PRINT_NUM       L02
+       JZ              L01 [TRUE] L0001
+       PRINT_RET       " (incorrect)"
+L0001: PRINT_RET       " (correct)"
+L0002: PRINT           "@get_sibling "
+       PRINT_NUM       L00
+       PRINT           " => "
+       PRINT_NUM       L02
+       JZ              L01 [TRUE] L0003
+       PRINT_RET       " (correct)"
+L0003: PRINT_RET       " (incorrect)"
+
+Routine R0006, 4 locals
+
+       GET_PROP_ADDR   L00,L01 -> L03
+       PRINT           "@get_prop_addr "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       PRINT           " => "
+       PRINT_NUM       L03
+       JZ              L03 [TRUE] L0001
+       STORE           L03,#01
+L0001: JE              L03,L02 [FALSE] L0002
+       PRINT_RET       " (correct)"
+L0002: PRINT_RET       " (incorrect)"
+
+Routine R0007, 4 locals
+
+       GET_PROP        L00,L01 -> L03
+       PRINT           "@get_prop "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       PRINT           " => "
+       PRINT_NUM       L03
+       JZ              L03 [TRUE] L0001
+       STORE           L03,#01
+L0001: JE              L03,L02 [FALSE] L0002
+       PRINT_RET       " (correct)"
+L0002: PRINT_RET       " (incorrect)"
+
+Routine R0008, 2 locals
+
+       CLEAR_ATTR      L00,L01
+       PRINT           "@clear_attr "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       NEW_LINE        
+       RTRUE           
+
+Routine R0009, 2 locals
+
+       SET_ATTR        L00,L01
+       PRINT           "@set_attr "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       NEW_LINE        
+       RTRUE           
+
+Routine R0010, 3 locals
+
+       TEST_ATTR       L00,L01 [TRUE] L0002
+       PRINT           "@test_attr "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       PRINT           " => FALSE "
+       JZ              L02 [TRUE] L0001
+       PRINT_RET       "(incorrect)"
+L0001: PRINT_RET       "(correct)"
+L0002: PRINT           "@test_attr "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       PRINT           " => TRUE "
+       JZ              L02 [TRUE] L0003
+       PRINT_RET       "(correct)"
+L0003: JZ              L00 [FALSE] L0004
+       PRINT_PADDR     S001
+       NEW_LINE        
+       RTRUE           
+L0004: PRINT_RET       "(incorrect)"
+
+Routine R0011, 2 locals
+
+       INSERT_OBJ      L00,L01
+       PRINT           "@insert_obj "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       NEW_LINE        
+       RTRUE           
+
+Routine R0012, 1 local
+
+       REMOVE_OBJ      L00
+       PRINT           "@remove_obj "
+       PRINT_NUM       L00
+       NEW_LINE        
+       RTRUE           
+
+Routine R0013, 4 locals
+
+       GET_NEXT_PROP   L00,L01 -> L03
+       PRINT           "@get_next_prop "
+       PRINT_NUM       L00
+       PRINT           " "
+       PRINT_NUM       L01
+       PRINT           " => "
+       PRINT_NUM       L03
+       JZ              L03 [TRUE] L0001
+       STORE           L03,#01
+L0001: JE              L03,L02 [FALSE] L0002
+       PRINT_RET       " (correct)"
+L0002: PRINT_RET       " (incorrect)"
+
+Routine R0014, 1 local
+
+       PRINT           "Strict Z Test
+"
+       PRINT_PADDR     S002
+       PRINT_PADDR     S003
+       PRINT_PADDR     S004
+L0001: STORE           Gec,#052b
+       STOREB          Gec,#01,#00
+       READ            Gec,#05a4 -> Gef
+       LOADW           #05a4,#01 -> -(SP)
+       JE              (SP)+,"yes","y" [FALSE] L0002
+       PRINT           "
+"
+       OUTPUT_STREAM   SCRIPTING_ENABLE
+       JUMP            L0004
+L0002: LOADW           #05a4,#01 -> -(SP)
+       JE              (SP)+,"no","n" [FALSE] L0003
+       PRINT           "
+"
+       JUMP            L0004
+L0003: PRINT           "Transcript? (Y/N) "
+       JUMP            L0001
+L0004: PRINT           "Testing @jin:
+
+"
+       CALL_VN         R0002 (#05,#06,#00)
+       CALL_VN         R0002 (#06,#05,#01)
+       CALL_VN         R0002 (#00,#05,#00)
+       CALL_VN         R0002 (#00,#00,#01)
+       PRINT           "
+Testing @get_child:
+
+"
+       CALL_VN         R0003 (#05,#01)
+       CALL_VN         R0003 (#07,#00)
+       CALL_VN         R0003 (#00,#00)
+       PRINT           "
+Testing @get_parent:
+
+"
+       CALL_VN         R0004 (#05,#00)
+       CALL_VN         R0004 (#06,#01)
+       CALL_VN         R0004 (#00,#00)
+       PRINT           "
+Testing @get_sibling:
+
+"
+       CALL_VN         R0005 (#05,#00)
+       CALL_VN         R0005 (#06,#01)
+       CALL_VN         R0005 (#00,#00)
+       PRINT           "
+Testing @get_prop_addr:
+
+"
+       CALL_VN         R0006 (#05,#04,#01)
+       CALL_VN         R0006 (#07,#04,#00)
+       CALL_VN         R0006 (#00,#04,#00)
+       PRINT           "
+Testing @get_prop:
+
+"
+       CALL_VN         R0007 (#05,#04,#01)
+       CALL_VN         R0007 (#06,#04,#00)
+       CALL_VN         R0007 (#00,#04,#00)
+       PRINT           "
+Testing @clear_attr:
+
+"
+       CALL_VN         R0008 (#05,#00)
+       CALL_VN         R0008 (#05,#01)
+       CALL_VN         R0008 (#00,#00)
+       CALL_VN         R0008 (#00,#01)
+       PRINT           "
+Testing @set_attr:
+
+"
+       CALL_VN         R0009 (#05,#00)
+       CALL_VN         R0009 (#05,#01)
+       CALL_VN         R0009 (#00,#00)
+       PRINT_PADDR     S005
+       PRINT_NUM       #00
+       PRINT_PADDR     S006
+       PRINT           "
+Testing @test_attr:
+
+"
+       CALL_VN         R0010 (#05,#00,#01)
+       CALL_VN         R0010 (#05,#01,#01)
+       CALL_VN         R0010 (#06,#00,#00)
+       CALL_VN         R0010 (#06,#01,#00)
+       CALL_VN         R0010 (#00,#00,#00)
+       CALL_VN         R0010 (#00,#01,#00)
+       PRINT           "
+Testing @insert_obj:
+
+"
+       CALL_VN         R0011 (#07,#05)
+       CALL_VN         R0011 (#00,#05)
+       CALL_VN         R0011 (#05,#00)
+       CALL_VN         R0011 (#00,#00)
+       PRINT           "
+Testing remove_obj:
+
+"
+       CALL_2N         R0012 (#07)
+       CALL_2N         R0012 (#00)
+       PRINT           "
+Testing get_next_prop:
+
+"
+       CALL_VN         R0013 (#05,#05,#01)
+       CALL_VN         R0013 (#06,#04,#00)
+       CALL_VN         R0013 (#00,#04,#00)
+       PRINT           "
+Test completed!
+"
+       LOADW           #00,#08 -> -(SP)
+       AND             (SP)+,#01 -> -(SP)
+       JZ              (SP)+ [TRUE] L0005
+       PRINT           "
+End of transcript
+"
+       OUTPUT_STREAM   #fffe
+L0005: PRINT           "
+Press any key.
+"
+       READ_CHAR       -> L00
+       RTRUE           
+
+[End of code]
+
+[Start of text]
+
+S001: "(incorrect; shouldn't set attributes in object 0)"
+S002: "
+According to the Z-Machine Standards Document, "objects are numbered
+consecucutively from 1 upward, with object number 0 being used to mean
+"nothing" (though there is formally no such object)." Hence, it seems
+reasonable that operations on object number 0 should either fail or, if that is
+not an option, do nothing. These tests are written with that assumption.
+"
+S003: "
+Please note that whenever a test is flagged as "correct", that only means that
+an instruction returned zero or non-zero (or branched / didn't branch) when it
+was supposed to. Not that it necessarily returned the correct value. If no
+result is written the result was not tested, and the test was only included to
+test the stability of the interpreter.
+"
+S004: "
+Would you like to make a transcript of the test results? (Y/N) "
+S005: "
+(Note: An attempt has been made to set attribute number "
+S006: " in object number 0. If the @test_attr test below indicates that this
+attribute has been set, the interpreter did not ignore the instruction as it
+should have done.)
+"
+S007: "<unknown attribute>"
+S008: "name"
+S009: "create"
+S010: "recreate"
+S011: "destroy"
+S012: "remaining"
+S013: "copy"
+S014: "call"
+S015: "print"
+S016: "print_to_array"
+S017: "prop1"
+S018: "prop2"
+S019: "attr1"
+S020: "attr2"
+
+[End of text]
+
+[End of file]

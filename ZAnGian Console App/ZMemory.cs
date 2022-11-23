@@ -1,10 +1,9 @@
 ﻿global using GameObjectId = ZAnGian.MemValue;
 global using GameVariableId = System.Byte;
-
+global using HighMemoryAddress = System.UInt32;
 
 using System;
 using System.Diagnostics;
-using System.Reflection.Emit;
 
 namespace ZAnGian
 {
@@ -38,6 +37,7 @@ namespace ZAnGian
         public MemWord StdRevision { get; private init; }
         public MemByte Flags1;
         public MemByte Flags2;
+        public bool IsTranscriptOn { get => ((Flags2 & 0x01) == 0x01); }
 
 
         public ZMemory(byte[] rawData)
@@ -61,6 +61,7 @@ namespace ZAnGian
             this.BaseStaticMem = ReadWord(0x0E);
 
             this.Flags2 = ReadByte(0x10);
+
             this.GameSerialNum = StringUtils.BytesToAsciiString(Data, 0x12, 6);
 
             this.AbbrTableLoc = ReadWord(0x18);
@@ -226,7 +227,7 @@ namespace ZAnGian
 
 
 
-        public MemByte ReadByte(ushort targetAddr)
+        public MemByte ReadByte(UInt32 targetAddr)
         {
             return new MemByte(Data[targetAddr]);
         }
@@ -236,7 +237,7 @@ namespace ZAnGian
             return new MemByte(Data[targetAddr.Value]);
         }
 
-        public void WriteByte(int targetAddr, byte value)
+        public void WriteByte(UInt32 targetAddr, byte value)
         {
             if (!IsWritable(targetAddr))
                 throw new ArgumentException("Illegal write on memory");
@@ -244,7 +245,7 @@ namespace ZAnGian
             Data[targetAddr] = value;
         }
 
-        public void WriteByte(int targetAddr, MemByte memByte)
+        public void WriteByte(UInt32 targetAddr, MemByte memByte)
         {
             WriteByte(targetAddr, memByte.Value);
         }
@@ -259,7 +260,7 @@ namespace ZAnGian
             WriteByte(targetAddr.Value, value);
         }
 
-        public MemWord ReadWord(ushort targetAddr)
+        public MemWord ReadWord(UInt32 targetAddr)
         {
             return new MemWord(Data[targetAddr], Data[targetAddr + 1]);
         }
@@ -269,7 +270,7 @@ namespace ZAnGian
             return ReadWord(targetAddr.Value);
         }
 
-        public void WriteWord(ushort targetAddr, MemWord data)
+        public void WriteWord(UInt32 targetAddr, MemWord data)
         {
             if (!IsWritable(targetAddr) || !IsWritable(targetAddr + 1))
                 throw new ArgumentException("Illegal write on memory");
@@ -355,7 +356,7 @@ namespace ZAnGian
 
 
 
-        private bool IsWritable(int targetAddr)
+        private bool IsWritable(UInt32 targetAddr)
         {
             return (targetAddr < BaseStaticMem.Value);
         }

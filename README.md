@@ -8,8 +8,6 @@ Supports version 3 files.
 
 ## TODO
 - try some storyfile with solutions
-
-
 - opcodes
 	- screen
 		- erase_window
@@ -21,18 +19,17 @@ Supports version 3 files.
 
 	- throw, catch
 
-	- input/output stream
-	- sound effect
+	- output stream 3, 4
+	- input stream 1
+	- sound effects
 
 
 - special routine calls:
 	- timed keyboard input
 	- end of audio effects
-- sound effects
 
 
 + word wrapping
-+ output stream 2 (game transcript)
 + GUI ZScreen implementation
 
 
@@ -41,12 +38,12 @@ Supports version 3 files.
 - fix unicode extension table
 
 ### Bugs
-- custom status line
-
+- acorncourt: custom status line
 
 ## Tested games
 - strictz.z5
 - acorncourt.z5
+- bse.z5
 
 
 ## Resources

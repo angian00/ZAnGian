@@ -9,7 +9,7 @@ namespace ZAnGian
         private static Logger _logger = Logger.GetInstance();
 
         private string _gamePath;
-
+        private ZProcessor _processor;
 
         public void StartGame(string gamePath)
         {
@@ -23,27 +23,13 @@ namespace ZAnGian
             rawData = File.ReadAllBytes(gamePath);
             memory = new ZMemory(rawData);
 
-
-            //--- DEBUG ---
-            //memory.DumpMetadata();
-
-            //memory.ReadObjList();
-
-            //memory.WalkObjTree(1, (GameObject gameObj, int depth) =>
-            //{
-            //    for (int i=0; i < depth; i++)
-            //        Console.Write("\t");
-
-            //    Console.WriteLine(gameObj);
-            //});
-            //-------------
-
-            processor = new ZProcessor(this, memory);
-            processor.Run();
+            _processor = new ZProcessor(this, memory);
+            _processor.Run();
         }
 
         public void RestartGame()
         {
+            _processor.Dispose();
             StartGame(_gamePath);
         }
 

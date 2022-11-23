@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection.Emit;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -211,7 +212,14 @@ namespace ZAnGian
 
         private void OpcodeOutputStream(int nOps, MemValue[] operands)
         {
-            _logger.Warn("TODO: implement OUTPUT_STREAM");
+            _logger.Debug($"OUTPUT_STREAM {operands[0]}");
+
+            int streamId = operands[0].SignedValue;
+            if (streamId > 0)
+                _screen.toggleStream(streamId, true);
+            else if (streamId < 0)
+                _screen.toggleStream(-streamId, false);
+            // else do nothing
         }
 
 

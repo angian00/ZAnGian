@@ -150,7 +150,7 @@ namespace ZAnGian
             _logger.Debug($"JUMP {operands[0]}");
 
             short targetOffset = operands[0].SignedValue;
-            _pc += targetOffset - 2;
+            _pc = (HighMemoryAddress)(_pc + targetOffset - 2);
         }
 
 
@@ -217,8 +217,8 @@ namespace ZAnGian
         {
             _logger.Debug($"PRINT_PADDR {operands[0]}");
 
-            MemWord targetAddr = UnpackAddress(operands[0]);
-            string msg = Zscii.DecodeText(_memory.Data, targetAddr.Value, out _, memory: _memory);
+            HighMemoryAddress targetAddr = UnpackAddress(operands[0]);
+            string msg = Zscii.DecodeText(_memory.Data, targetAddr, out _, memory: _memory);
 
             _screen.Print(msg);
         }
