@@ -10,7 +10,6 @@ Supports version 3 files.
 - try some storyfile with solutions
 - opcodes
 	- screen
-		- erase_window
 		- erase_line
 		- set_truecolour
 
@@ -34,11 +33,12 @@ Supports version 3 files.
 
 
 ### Details
+- sanitize input in ZScreen.Read and/or encode non-basic chars (see Assert FIXME in ZScii.EncodeText)
 - any terminating characters in read
 - fix unicode extension table
 
 ### Bugs
-- acorncourt: custom status line
+
 
 ## Tested games
 - strictz.z5

@@ -2,7 +2,7 @@
   "profiles": {
     "ZAnGian Console App": {
       "commandName": "Project",
-      "commandLineArgs": "games\\bse.z5",
+      "commandLineArgs": "games\\bear.z5",
       "workingDirectory": "C:/Users/angian/git-workspace/ZAnGian"
     }
   }

@@ -58,6 +58,9 @@ namespace ZAnGian
         
         private static Logger _logger = Logger.GetInstance();
 
+        public readonly int NScreenLines;
+        public readonly int NScreenColumns;
+
         private TextStyle _currTextStyle = TextStyle.Normal;
         private WindowId _currWindow = WindowId.LowerWindow;
         private Dictionary<WindowId, CursorPosition> CursorPositions;
@@ -83,6 +86,9 @@ namespace ZAnGian
             CursorPositions = new Dictionary<WindowId, CursorPosition>();
             CursorPositions[WindowId.UpperWindow] = new CursorPosition() { Line = 1, Column = 1 };
             CursorPositions[WindowId.LowerWindow] = new CursorPosition() { Line = 2, Column = 1 };
+
+            NScreenLines = Console.WindowHeight;
+            NScreenColumns = Console.WindowWidth;
 
             Console.Clear();
             Console.WriteLine(); //leave space for top status bar
@@ -327,6 +333,12 @@ namespace ZAnGian
 
         public void SetCursorPos(int line, int col)
         {
+            if (col < 1)
+                col = 1;
+
+            if (col > NScreenColumns)
+                col = NScreenColumns;
+
             if (_currWindow == WindowId.UpperWindow)
                 CursorPositions[_currWindow] = new CursorPosition() { Line = line, Column = col };
             else
@@ -367,7 +379,61 @@ namespace ZAnGian
 
         public void EraseWindow(short windowId)
         {
-            _logger.Warn("TODO: implement EraseWindow");
+            TextStyle bkpTextStyle = _currTextStyle;
+            _currTextStyle = TextStyle.Normal;
+
+            if (windowId == -1)
+            {
+                Console.CursorTop = 0;
+                Console.CursorLeft = 0;
+
+                for (int iLine = 0; iLine < NScreenLines; iLine++)
+                    for (int iCol = 0; iCol < NScreenColumns; iCol++)
+                        Console.Write(" ");
+
+                _upperWindowSize = 0;
+                SetCurrWindow(0);
+                SetCursorPos(1, 1);
+
+            }
+            else if (windowId == -2)
+            {
+                for (int iLine = 0; iLine < NScreenLines; iLine++)
+                    for (int iCol = 0; iCol < NScreenColumns; iCol++)
+                        Console.Write(" ");
+
+                //restore current cursor pos
+                ApplyCursorPos();
+            }
+            else
+            {
+                int startLine;
+                int endLine;
+
+                if (_currWindow == WindowId.UpperWindow)
+                {
+                    startLine = 0;
+                    endLine = _upperWindowSize;
+                }
+                else
+                {
+                    startLine = _upperWindowSize;
+                    endLine = NScreenLines;
+                }
+
+                Console.CursorTop = startLine;
+                Console.CursorLeft = 0;
+
+                for (int iLine = 0; iLine < (endLine - startLine); iLine++)
+                    for (int iCol = 0; iCol < NScreenColumns; iCol++)
+                        Console.Write(" ");
+
+                //restore current cursor pos
+                ApplyCursorPos();
+
+            }
+
+            _currTextStyle = bkpTextStyle;
         }
 
 

@@ -55,6 +55,11 @@ namespace ZAnGian
             _rndGen = new Random();
             _screen = new ZScreen(_memory.IsTranscriptOn);
             _input = new ZInput(_screen);
+
+            //set dynamic bytes on the memory header
+            _memory.ScreenHeight = new MemByte((byte)_screen.NScreenLines);
+            _memory.ScreenWidth = new MemByte((byte)_screen.NScreenColumns);
+
         }
 
         public void Dispose()

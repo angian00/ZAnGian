@@ -39,6 +39,9 @@ namespace ZAnGian
         public MemByte Flags2;
         public bool IsTranscriptOn { get => ((Flags2 & 0x01) == 0x01); }
 
+        public MemByte ScreenHeight { get => ReadByte(0x20); set => WriteByte(0x20, value); }
+        public MemByte ScreenWidth  { get => ReadByte(0x21); set => WriteByte(0x21, value); }
+
 
         public ZMemory(byte[] rawData)
         {

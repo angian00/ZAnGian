@@ -21,7 +21,7 @@ namespace ZAnGian
 
         public char ReadChar()
         {
-            return Console.ReadKey().KeyChar;
+            return Console.ReadKey(true).KeyChar;
         }
 
 
