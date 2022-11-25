@@ -33,7 +33,6 @@ Supports version 3 files.
 
 
 ### Details
-- sanitize input in ZScreen.Read and/or encode non-basic chars (see Assert FIXME in ZScii.EncodeText)
 - any terminating characters in read
 - fix unicode extension table
 

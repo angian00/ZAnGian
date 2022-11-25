@@ -93,10 +93,16 @@ namespace ZAnGian
                     //NB: parser needs to refresh its copy of memory too
                     _parser = new ZParser(_memory);
 
+                    if (_memory.ZVersion >= 5)
+                    {
+                        MemByte storeVar = _memory.ReadByte(_pc-1);
+                        WriteVariable(storeVar.Value, 0x02);
+                    }
+
                     //DEBUG
                     _logger.Debug("After restore");
                     _logger.Debug($"pc={_pc}");
-                    //_stack.Dump();
+                    _stack.Dump();
                     //_memory.DumpDynamicMem();
                     //
                 }
@@ -129,27 +135,35 @@ namespace ZAnGian
         private void OpcodeSave()
         {
             _logger.Debug("SAVE");
+            MemByte storeVar = null;
 
             string filepath = _input.GetFilePath(false);
-
             if (filepath == null)
                 return;
 
-            //MemWord targetOffset;
-            //bool branchOnTrue;
-            //ComputeBranchOffset(out targetOffset, out branchOnTrue);
-            Branch(true);
+            if (_memory.ZVersion < 5)
+            {
+                Branch(true);
+            }
+            else
+            {
+                storeVar = _memory.ReadByte(_pc);
+                _pc++;
+            }
 
             _logger.Debug("Before save");
             _logger.Debug($"pc={_pc}");
-            //_stack.Dump();
+            _stack.Dump();
             //_memory.DumpDynamicMem();
 
             ZMemory initialMemState = _interpreter.GetInitialMemoryState();
             GameSave gameSave = new GameSave(_memory, _stack, _pc, initialMemState);
             bool savedOk = gameSave.SaveFile(filepath);
 
-            //BranchOnCondition(savedOk, targetOffset, branchOnTrue); //CHECK
+            if (_memory.ZVersion >= 5)
+            {
+                WriteVariable(storeVar.Value, (ushort) (savedOk ? 0x01 : 0x00));
+            }
         }
 
         private void OpcodeShowStatus()

@@ -257,7 +257,7 @@ namespace ZAnGian
             //skip checksum
             _currAddr += 2;
 
-            _pc = (UInt16)ReadNBytes(3); //CHECK possible overflows on pc
+            _pc = (HighMemoryAddress)ReadNBytes(3);
             _currAddr += 3;
         }
 

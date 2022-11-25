@@ -84,9 +84,6 @@ namespace ZAnGian
         {
             _logger.Debug($"SAVE {FormatOperands(nOps, operands)}");
             _logger.Warn($"defaulting to 0OP save -->");
-
-            //TODO: use extra save arguments
-
             OpcodeSave();
         }
 
