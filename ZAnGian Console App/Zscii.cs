@@ -253,7 +253,6 @@ namespace ZAnGian
         }
 
 
-        //currently works only with no multi-char extensions
         public static byte[] EncodeText(byte[] inputBuffer, ushort startOffset, ushort inputLen, ushort nBytesToWrite=UInt16.MaxValue)
         {
             List<byte> textData = new();
@@ -277,7 +276,11 @@ namespace ZAnGian
                 }
                 else
                 {
-                    Debug.Assert(false, "Invalid input char"); //FIXME: sanitize input in ZInput
+                    //multi-zchar encoding: see spec 3.4
+                    textData.Add(0x05);
+                    textData.Add(0x06);
+                    textData.Add((byte)((ch >> 5) & 0b0001_1111));
+                    textData.Add((byte)(ch & 0b0001_1111));
                 }
             }
 
