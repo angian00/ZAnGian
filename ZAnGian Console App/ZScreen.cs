@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace ZAnGian
 {
@@ -13,8 +16,10 @@ namespace ZAnGian
 
     public enum StreamId
     {
-        Screen= 1,
-        Transcript = 2,
+        Screen = 1,
+        GameTranscript = 2,
+        Memory = 3,
+        CommandTranscript = 4,
     }
 
 
@@ -61,6 +66,8 @@ namespace ZAnGian
         public readonly int NScreenLines;
         public readonly int NScreenColumns;
 
+        private ZMemory _memory;
+
         private TextStyle _currTextStyle = TextStyle.Normal;
         private WindowId _currWindow = WindowId.LowerWindow;
         private Dictionary<WindowId, CursorPosition> CursorPositions;
@@ -70,17 +77,25 @@ namespace ZAnGian
 
         private HashSet<StreamId> _activeStreams = new HashSet<StreamId>();
         private Dictionary<StreamId, TextWriter> _stream2Writer = new Dictionary<StreamId, TextWriter>();
-        private TextWriter _transcriptWriter = File.AppendText("game_session.txt");
+        private TextWriter _gameTranscriptWriter = File.AppendText("game_transcript.txt");
+        private TextWriter _commandTranscriptWriter = File.AppendText("command_transcript.txt");
+
+        private StringBuilder _memorySB;
+        private UInt32 _memoryTableAddr;
 
 
-        public ZScreen(bool isTranscriptActive=false)
+        public ZScreen(ZMemory memory)
         {
+            _memory = memory;
+
             _stream2Writer.Add(StreamId.Screen, Console.Out);
-            _stream2Writer.Add(StreamId.Transcript, _transcriptWriter);
+            _stream2Writer.Add(StreamId.GameTranscript, _gameTranscriptWriter);
+            _stream2Writer.Add(StreamId.CommandTranscript, _commandTranscriptWriter);
 
             _activeStreams.Add(StreamId.Screen);
-            if (isTranscriptActive)
-                _activeStreams.Add(StreamId.Transcript);
+            if (_memory.IsTranscriptOn)
+                _activeStreams.Add(StreamId.GameTranscript);
+
 
             //absolute screen positions
             CursorPositions = new Dictionary<WindowId, CursorPosition>();
@@ -89,23 +104,38 @@ namespace ZAnGian
 
             NScreenLines = Console.WindowHeight;
             NScreenColumns = Console.WindowWidth;
+            
+            //set dynamic bytes on the memory header
+            _memory.ScreenHeight = new MemByte((byte)NScreenLines);
+            _memory.ScreenWidth = new MemByte((byte)NScreenColumns);
+
 
             Console.Clear();
             Console.WriteLine(); //leave space for top status bar
 
-            _transcriptWriter.WriteLine();
+            _gameTranscriptWriter.WriteLine();
         }
 
 
         public void Dispose()
         {
-            _transcriptWriter.WriteLine();
-            _transcriptWriter.Close();
+            _gameTranscriptWriter.WriteLine();
+            _gameTranscriptWriter.Close();
+
+            _commandTranscriptWriter.WriteLine();
+            _commandTranscriptWriter.Close();
         }
+
 
         public void Print(string msg)
         {
-            //Console.Write(msg);
+            if (_activeStreams.Contains(StreamId.Memory))
+            {
+                _logger.Info("printing to memory [" + msg + "]");
+                _memorySB.Append(msg);
+                return;
+            }
+
             foreach (StreamId streamId in _activeStreams)
             {
                 TextWriter writer = _stream2Writer[streamId];
@@ -361,17 +391,41 @@ namespace ZAnGian
         }
 
 
-        public void toggleStream(int streamId, bool enable)
+        public void toggleStream(int streamId, bool enable, UInt32 tableAddr = 0x00)
         {
-            //FIXME: set game header Flags2?
-
+            toggleStream((StreamId)streamId, enable, tableAddr);
+        }
+        
+        public void toggleStream(StreamId streamId, bool enable, UInt32 tableAddr=0x00)
+        {
             if (enable)
-                _activeStreams.Add((StreamId)streamId);
+            {
+                _activeStreams.Add(streamId);
+                switch (streamId)
+                {
+
+                    case StreamId.GameTranscript:
+                        _memory.IsTranscriptOn = true;
+                        break;
+
+                    case StreamId.Memory:
+                        OpenMemoryStream(tableAddr);
+                        break;
+
+                    default:
+                        //do nothing special
+                        break;
+                }
+            }
             else
+            {
                 _activeStreams.Remove((StreamId)streamId);
+                if ((StreamId)streamId == StreamId.Memory)
+                    CloseMemoryStream();
+            }
         }
 
-
+        
         public void EraseLine(ushort val)
         {
             _logger.Warn("TODO: implement EraseLine");
@@ -437,6 +491,31 @@ namespace ZAnGian
         }
 
 
+        private void OpenMemoryStream(UInt32 tableAddr)
+        {
+            _memorySB = new StringBuilder();
+            Debug.Assert(tableAddr > 0);
+            _memoryTableAddr = tableAddr;
+        }
+
+        private void CloseMemoryStream()
+        {
+            string utfText = _memorySB.ToString();
+
+            //replace non-ASCII Unicode with '?'
+            StringBuilder asciiSB = new StringBuilder();
+            foreach (char c in utfText)
+            {
+                if (c < 128)
+                    asciiSB.Append(c);
+                else
+                    asciiSB.Append('?');
+            }
+
+            byte[] zsciiText = Zscii.Ascii2Zscii(asciiSB.ToString());
+            _memory.WriteWord(_memoryTableAddr, new MemWord(zsciiText.Length));
+            _memory.CopyBytes(new MemWord(_memoryTableAddr+2), zsciiText);
+        }
     }
 
 

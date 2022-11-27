@@ -4,6 +4,7 @@ global using HighMemoryAddress = System.UInt32;
 
 using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace ZAnGian
 {
@@ -22,6 +23,8 @@ namespace ZAnGian
 
         public byte[] Data;
 
+        public ZScreen Screen { get; set; }
+
         public int ZVersion;
         private MemWord BaseHighMem;
         public MemWord StartPC { get; private set; }
@@ -36,8 +39,24 @@ namespace ZAnGian
         public MemWord Checksum { get; private init; }
         public MemWord StdRevision { get; private init; }
         public MemByte Flags1;
-        public MemByte Flags2;
-        public bool IsTranscriptOn { get => ((Flags2 & 0x01) == 0x01); }
+
+        public bool IsTranscriptOn {
+            get {
+                byte Flags2 = ReadByte(0x10).Value;
+                return ((Flags2 & 0x01) == 0x01);
+            }
+
+            set {
+                byte Flags2 = ReadByte(0x10).Value;
+
+                if (value)
+                    Flags2 = (byte)(Flags2 | 0x01);
+                else
+                    Flags2 = (byte)(Flags2 & (byte)((~0x01) & 0xff));
+
+                WriteByte(0x10, Flags2);
+            }
+        }
 
         public MemByte ScreenHeight { get => ReadByte(0x20); set => WriteByte(0x20, value); }
         public MemByte ScreenWidth  { get => ReadByte(0x21); set => WriteByte(0x21, value); }
@@ -62,8 +81,6 @@ namespace ZAnGian
             this.ObjectTableLoc = ReadWord(0x0A);
             this.GlobalVarTableLoc = ReadWord(0x0C);
             this.BaseStaticMem = ReadWord(0x0E);
-
-            this.Flags2 = ReadByte(0x10);
 
             this.GameSerialNum = StringUtils.BytesToAsciiString(Data, 0x12, 6);
 
@@ -102,8 +119,9 @@ namespace ZAnGian
             WriteByte(0x1f, (byte)'Z');
 
             //specify missing interpreter features
-            this.Flags2 &= 0b11101111; //no undo
-            WriteByte(0x01, Flags2);
+            byte Flags2 = ReadByte(0x10).Value;
+            Flags2 &= 0b11101111; //no undo
+            WriteByte(0x10, Flags2);
         }
 
 
@@ -244,6 +262,13 @@ namespace ZAnGian
         {
             if (!IsWritable(targetAddr))
                 throw new ArgumentException("Illegal write on memory");
+
+            //special hook for transcript on/off flag
+            if (targetAddr == 0x10 && Screen != null)
+            {
+                bool toggleGameTranscript = ((value & 0x01) == 0x01);
+                Screen.toggleStream(StreamId.GameTranscript, toggleGameTranscript);
+            }
 
             Data[targetAddr] = value;
         }

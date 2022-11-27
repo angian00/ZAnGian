@@ -90,8 +90,12 @@ namespace ZAnGian
                     ZMemory initialMemState = _interpreter.GetInitialMemoryState();
                     resOk = savedGame.Restore(ref _memory, ref _stack, ref _pc, initialMemState);
 
-                    //NB: parser needs to refresh its copy of memory too
+                    //other objects neeed to refresh their copy of memory too
                     _parser = new ZParser(_memory);
+
+                    _screen.Dispose();
+                    _screen = new ZScreen(_memory);
+                    _memory.Screen = _screen;
 
                     if (_memory.ZVersion >= 5)
                     {

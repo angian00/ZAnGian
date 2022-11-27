@@ -244,7 +244,7 @@ namespace ZAnGian
         }
 
 
-        public static byte[] EncodeText(string asciiText, ushort nBytesToWrite)
+        public static byte[] EncodeText(string asciiText, short nBytesToWrite=-1)
         {
             ushort inputLen = (ushort)asciiText.Length;
             byte[] inputBuffer = Ascii2Zscii(asciiText);
@@ -253,7 +253,7 @@ namespace ZAnGian
         }
 
 
-        public static byte[] EncodeText(byte[] inputBuffer, ushort startOffset, ushort inputLen, ushort nBytesToWrite=UInt16.MaxValue)
+        public static byte[] EncodeText(byte[] inputBuffer, ushort startOffset, ushort inputLen, short nBytesToWrite=-1)
         {
             List<byte> textData = new();
 
@@ -285,11 +285,11 @@ namespace ZAnGian
             }
 
             int textDataLen = textData.Count;
-            byte[] encodedData = new byte[nBytesToWrite];
+            byte[] encodedData = new byte[nBytesToWrite > 0 ? nBytesToWrite : UInt16.MaxValue];
 
             int iDataIn = 0;
             int iDataOut = 0;
-            while (iDataOut < nBytesToWrite)
+            while (true)
             {
                 byte ch1 = iDataIn     < textDataLen ? textData[iDataIn]     : (byte)0x05;
                 byte ch2 = iDataIn + 1 < textDataLen ? textData[iDataIn + 1] : (byte)0x05;
@@ -300,14 +300,17 @@ namespace ZAnGian
                 encodedData[iDataOut+1]  = (byte)((ch2 & 0b0111) << 5);
                 encodedData[iDataOut+1] |= (byte)(ch3);
 
-                if (iDataOut == nBytesToWrite - 2)
+                if ((nBytesToWrite > 0 && iDataOut >= nBytesToWrite - 2) || (nBytesToWrite == -1 && iDataIn >= textDataLen - 3))
+                {
                     encodedData[iDataOut] |= 0b1000_0000; //set MSB for first byte of last couple
+                    break;
+                }
 
                 iDataIn += 3;
                 iDataOut += 2;
             }
 
-            return encodedData;
+            return encodedData[..(iDataOut+2)];
         }
 
         public static char ZChar2Zscii(byte zchar, Alphabet alphabet = Alphabet.Lowercase)

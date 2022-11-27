@@ -169,7 +169,7 @@ namespace ZAnGian
         {
             MemWord memAddr = _currDictAddr;
 
-            byte[] wordEncoded = Zscii.EncodeText(word, _memory.DictEntryTextLen);
+            byte[] wordEncoded = Zscii.EncodeText(word, (short)_memory.DictEntryTextLen);
 
             //FIXME: use binary search for dictionary entries
             for (ushort iDictEntry=0; iDictEntry < _numDictEntries; iDictEntry ++)

@@ -18,7 +18,9 @@ Supports version 3 files.
 
 	- throw, catch
 
-	- output stream 3, 4
+	- output streams
+		- output stream 4
+		- stack of stringbuilders for stream 3
 	- input stream 1
 	- sound effects
 
@@ -33,16 +35,18 @@ Supports version 3 files.
 
 
 ### Details
-- any terminating characters in read
+- custom terminating characters in read
 - fix unicode extension table
 
 ### Bugs
+- save file format unrecognized by Frotz
 
 
 ## Tested games
 - strictz.z5
 - acorncourt.z5
 - bse.z5
+- bear.z5
 
 
 ## Resources

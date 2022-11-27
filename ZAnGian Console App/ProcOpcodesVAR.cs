@@ -212,14 +212,25 @@ namespace ZAnGian
 
         private void OpcodeOutputStream(int nOps, MemValue[] operands)
         {
-            _logger.Debug($"OUTPUT_STREAM {operands[0]}");
+            _logger.Debug($"OUTPUT_STREAM {FormatOperands(nOps, operands)}");
 
             int streamId = operands[0].SignedValue;
-            if (streamId > 0)
-                _screen.toggleStream(streamId, true);
-            else if (streamId < 0)
-                _screen.toggleStream(-streamId, false);
-            // else do nothing
+            if (nOps > 1)
+            {
+                UInt16 memTableAddr = operands[1].FullValue;
+                if (streamId > 0)
+                    _screen.toggleStream(streamId, true, memTableAddr);
+                else if (streamId < 0)
+                    _screen.toggleStream(-streamId, false, memTableAddr);
+                // else do nothing
+            }
+            else {
+                if (streamId > 0)
+                    _screen.toggleStream(streamId, true);
+                else if (streamId < 0)
+                    _screen.toggleStream(-streamId, false);
+                // else do nothing
+            }
         }
 
 
