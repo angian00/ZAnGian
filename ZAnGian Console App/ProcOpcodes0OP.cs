@@ -181,7 +181,7 @@ namespace ZAnGian
         {
             _logger.Debug("VERIFY");
 
-            _logger.Warn("TODO: implement OpcodeVerify");
+            //not implemented, we always return true
             Branch(true);
         }
     }

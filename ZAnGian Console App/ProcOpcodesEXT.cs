@@ -105,13 +105,13 @@ namespace ZAnGian
         {
             _logger.Debug($"SET_FONT {FormatOperands(nOps, operands)}");
             
-            //byte fontId = (byte)operands[0].FullValue;
+            ushort fontId = operands[0].FullValue;
             MemByte storeVar = _memory.ReadByte(_pc);
             _pc++;
 
-            _logger.Warn($"TODO: implement SET_FONT");
+            ushort res = _screen.SetFont(fontId);
 
-            WriteVariable(storeVar.Value, new MemWord(0x00));
+            WriteVariable(storeVar.Value, new MemWord(res));
         }
 
 
@@ -119,7 +119,10 @@ namespace ZAnGian
         {
             _logger.Debug($"SET_TRUE_COLOUR {FormatOperands(nOps, operands)}");
 
-            _logger.Warn($"TODO: implement SET_TRUE_COLOUR");
+            ushort fgTrueColour= operands[0].FullValue;
+            ushort bgTrueColour = operands[1].FullValue;
+
+            _screen.SetTrueColour(fgTrueColour, bgTrueColour);
         }
     }
 }

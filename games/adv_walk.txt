@@ -1,0 +1,276 @@
+Adventure - Walkthrough
+By Julian Fleetwood
+
+
+This walkthrough is for the 350 point version of Adventure.
+
+At some point in the game a dwarf should show up and throw an axe at you. He will miss and run away. After he leaves type GET AXE and keep it with you all the time. The next time the dwarf shows up keep typing THROW AXE then GET AXE until he's dead (remembering to get the axe afterwards).
+
+A pirate will also show up at some point and steal your treasure. You get all of the stolen items back at the end of this walkthrough, as well as the final treasure, so don't worry unless he steals a treasure you need to solve a puzzle, in which case jump to the end of the walkthrough.
+
+
+The Walkthrough
+
+1. N			No instructions
+2. E			To 'Inside Building'
+3. GET LAMP		Got 'Brass lantern'
+4. PLUGH		Zapped to 'Y2' (Y2 is a caver term for 'second entrance')
+5. ON			Light!
+6. S			To 'N/S passage'
+7. GET SILVER		Got 'Silver bars'
+8. N			Back at 'Y2'
+9. PLOVER		Zapped to 'Plover Room'
+10. NE			To 'Dark-room'
+11. GET PYRAM		Got the 'Platinum pyramid'
+12. S			Back to 'Plover Room'
+13. PLOVER		Zapped back to 'Y2'
+14. PLUGH		Zapped back to 'Inside Building'
+15. DROP SILVER 	Treasure 1
+16. DROP PYRAM		Treasure 2
+17. XYZZY		Zapped to 'Debris room'
+18. GET ROD		Got 'Black rod'
+19. E			To 'Cobble crawl'
+20. GET CAGE		Got 'Wicker cage'
+21. PIT			To 'Top of small pit'
+22. E			To 'Bird chamber'
+23. DROP ROD		The bird doesn't like it
+24. GET BIRD		Got 'Little bird'
+25. GET ROD		Got 'Black rod'
+26. W			Back to 'Top of small pit'
+27. D			To 'Hall of Mists'
+28. D			To 'Hall of Mt King'
+29. FREE BIRD		Dead snake
+30. DROP CAGE		We don't need it any more
+31. W			To 'West side chamber'
+32. GET COINS		Got 'Rare coins'
+33. E			Back to 'Hall of Mt King'
+34. U			Back to 'Hall of Mists'
+35. W			To 'East bank of fissure'
+36. WAVE ROD		Magic bridge
+37. DROP ROD		We don't need it any more
+38. W			To 'West bank of fissure'
+39. GET DIAMO		Got 'Several diamonds'
+40. E			Back to 'East bank of fissure'
+41. E			Back to 'Hall of Mists'
+42. S			To 'Nugget of gold room'
+43. GET NUGGET		Got 'Large gold nugget'
+44. N			Back to 'Hall of Mists'
+45. D			Back to 'Hall of Mt King'
+46. S			To 'South side chamber'
+47. GET JEWEL		Got 'Precious jewelry'
+48. N			Back to 'Hall of Mt King'
+49. SW			To 'Secret e/w canyon'
+50. W			To 'Secret canyon'
+51. KILL DRAGON		
+52. Y			He's not so tough!
+53. GET RUG		Got 'Persian rug'
+54. E			Back to 'Secret e/w canyon'
+55. E			Back to 'Hall of Mt King'
+56. N			Back to 'N/S passage'
+57. N			Back to 'Y2'
+58. PLUGH		Zapped back to 'Inside building'
+59. DROP COINS		Treasure 3
+60. DROP DIAMO		Treasure 4
+61. DROP NUGGET		Treasure 5
+62. DROP JEWEL		Treasure 6
+63. DROP RUG		Treasure 7
+64. GET BOTTLE		Got 'Small bottle' and 'Water in the bottle'
+65. PLUGH		Zapped back to 'Y2' 
+66. S			Back to 'N/S passage'
+67. D			To 'Dirty passage'
+68. W			To 'Dusty rock room'
+69. D			To 'Complex junction'
+70. W			To 'Bedquilt'
+71. W			To 'Swiss Cheese Room'
+72. E			To 'Soft room'
+73. GET PILLOW		Got 'Velvet pillow'
+74. W			Back to 'Swiss Cheese Room'
+75. ORIENTAL		To 'Oriental Room'
+76. GET VASE		Got 'Ming vase'
+77. SE			Back to 'Swiss Cheese Room'
+78. W			To 'East end of Twopit Room'
+79. W			To 'West end of Twopit Room'
+80. D			To 'West pit'
+81. POUR WATER		Watered the plant
+82. U			Back to 'West end of Twopit Room'
+83. W			To 'Slab Room'
+84. U			Back to 'Secret n/s canyon'
+85. RESERVOIR		To 'Reservoir'
+86. GET WATER		Glug glug glug!
+87. S			Back to 'Mirror Canyon'
+88. S			Back to 'Secret n/s canyon'
+89. D			Back to 'Slab Room'
+90. S			Back to 'West end of Twopit Room'
+91. D			Back to 'West pit'
+92. POUR WATER		
+93. U			Back to 'West end of Twopit Room'
+94. E			Back to 'East end of Twopit Room'
+95. D			To 'East pit'
+96. GET OIL		Got 'Oil in bottle'
+97. U			Back to 'East end of Twopit Room'
+98. W			Back to 'West end of Twopit Room'
+99. D			Back to 'West pit'
+100. CLIMB		To 'Narrow corridor'
+110. W			To 'Giant Room'
+111. GET EGGS		Got 'Golden eggs'
+112. N			To 'Immense north/south passage'
+113. OIL DOOR		
+114. DROP BOTTLE	We don't need it any more
+115. N			To 'Cavern with waterfall'
+116. GET TRIDENT	Got jeweled trident
+117. W			To 'Steep incline above large room'
+118. D			Back to 'Large low room'
+119. SE			Back to 'Oriental Room'
+120. SE			Back to 'Swiss Cheese Room'
+121. NE			Back to 'Bedquilt'
+122. E			Back to 'Complex junction'
+123. N			To 'Shell room'
+124. OPEN CLAM		
+125. D			To 'Long sloping corridor with ragged walls'
+126. D			To 'Cul-de-sac'
+127. GET PEARL		Got 'Glistening pearl'
+128. U			Back to 'Long sloping corridor with ragged walls'
+129. U			Back to 'Shell room'
+130. S			Back to 'Complex junction'
+131. U			Back to 'Dusty rock room'
+132. E			Back to 'Dirty passage'
+133. U			Back to N/S passage
+134. N			Back to 'Y2'
+135. PLUGH		Zapped back to 'Inside Building'
+136. DROP PILLOW	
+137. DROP VASE		Treasure 8
+138. DROP TRIDENT	Treasure 9
+139. DROP PEARL		Treasure 10
+140. GET KEYS		Got 'Set of keys'
+141. GET FOOD		Got 'Tasty food'
+142. PLUGH		Zapped back to 'Y2'
+143. S			Back to 'N/S passage'
+144. D			To 'Dirty passage'
+145. W			To 'Dusty rock room'
+146. D			To 'Complex junction'
+147. W			Back to 'Bedquilt'
+148. W			Back to 'Swiss Cheese Room'
+149. ORIENTAL		Back to 'Oriental Room'
+150. W			Back to 'Large low room'
+151. SW			To 'Sloping corridor'
+152. U			To 'SW side of chasm'
+153. THORW EGGS		We'll see them again soon
+154. NE			To 'NE side of chasm'
+155. NE			To 'Corridor'
+156. BARREN		To 'In front of Barren Room'
+157. E			To 'Barren room'
+158. FEED BEAR		
+159. UNLOCK		
+160. GET CHAIN		Got 'Golden chain'
+161. GET BEAR		Got 'Bear'
+162. W			Back to 'In front of Barren Room'
+163. FORK		Back to 'Fork in path'
+164. NE			To 'Junction with warm walls'
+165. E			To 'Chamber of boulders'
+166. GET SPICES		Got 'Rare spices'
+167. FORK		Back to 'Fork in path'
+168. W			Back to 'Corridor'
+169. W			Back to 'NE side of chasm'
+170. SW			Attempt to cross bridge
+171. FREE BEAR		
+172. SW			Back to 'SW side of chasm'
+173. SW			Back to 'Sloping corridor'
+174. D			Back to 'Large low room'
+175. SE			Back to 'Oriental Room'
+176. N			To 'Misty cavern'
+177. W			To 'Alcove'
+178. DROP KEYS		We don't need them any more
+179. DROP SPICES	
+180. DROP CHAIN		
+181. DROP LAMP		
+182. DROP AXE		Only if you have it
+183. E			Back to 'Plover Room'
+184. GET EMERA		Got 'Egg-sized emerald'
+185. W			Back to 'Alcove'
+186. GET SPICES		Got 'Rare spices'
+187. GET CHAIN		Got 'Golden chain'
+188. GET LAMP		Got 'Brass lantern'
+189. GET AXE		Only if you left it
+190. NW			Back to 'Misty cavern'
+191. S			Back to 'Oriental Room'
+192. SE			Back to 'Swiss Cheese Room'
+193. W			Back to 'East end of Twopit Room'
+194. W			Back to 'West end of Twopit Room'
+195. D			Back to 'West pit'
+196. CLIMB		Back to 'Narrow Corridor'
+197. W			Back to 'Giant Room'
+198. FEE		
+199. FIE		
+200. FOE		
+201. FOO		
+202. GET EGGS		Got 'Golden eggs'
+203. S			Back to 'Narrow Corridor'
+204. E			Back to 'West pit'
+205. U			Back to 'West end of Twopit Room'
+206. E			Back to 'East end of Twopit Room'
+207. E			Back to 'Swiss Cheese Room'
+208. NE			Back to 'Bedquilt'
+200. E			Back to 'Complex Junction'
+210. U			Back to 'Dusty rock room'
+211. E			Back to 'Dirty passage'
+212. U			Back to 'N/S passage'
+213. N			Back to 'Y2'
+214. PLUGH		Zapped back to 'Inside Building'
+215. DROP EGGS		Treasure 11
+216. DROP SPICES	Treasure 12
+217. DROP CHAIN		Treasure 13
+218. DROP EMERA		Treasure 14
+219. GET RUG		Don't do this if the pirate has already stolen something
+220. PLUGH		Zapped back to 'Y2'
+221. S			Back to 'N/S passage'
+222. S			Back to 'Hall of Mt King'
+223. U			Back to 'Hall of Mists'
+224. W			Back to 'East bank of fissure'
+225. W			Back to 'West bank of fissure'
+226. W			Back to 'West end of Hall of Mists'
+227.			Hang around here till the pirate steals your treasure
+228. S			To 'Maze of twisty little passages'
+229. E			To 'Maze of twisty little passages'
+230. S			To 'Maze of twisty little passages'
+231. S			To 'Maze of twisty little passages'
+232. S			To 'Maze of twisty little passages'
+233. N			To 'Maze of twisty little passages'
+234. E			To 'Thirty foot pit'
+235. N			To 'Maze of twisty little passages'
+236. E			To 'Maze of twisty little passages'
+237. NW			To 'Dead end'
+238. GET CHEST		Got 'Treasure chest'
+239. GET RUG		And any other treasure that the pirate stole
+240. SE			To 'Maze of twisty little passages'
+241. N			To 'Brink of pit'
+242. D			To 'Bird chamber'
+243. E			To 'Awkward sloping canyon'
+244. E			To 'Debris Room'
+245. XYZZY		Back to 'Inside building'
+246. DROP RUG		And whatever treasure you took
+247. DROP CHEST		Treasure 15
+248. PLUGH		Zapped back to 'Y2'
+249. S			Back to 'N/S passage'
+250. D			Back to 'Dirty passage'
+251. W			To 'Dusty rock room'
+252. D			To 'Complex junction'
+253. E			To 'Anteroom'
+254. GET MAGAZ		Got 'Spelunker Today'
+255. E			To 'Witt's End'
+256. DROP MAGAZ		
+257.			Go in any direction except WEST to get back to 'Anteroom'
+259. W			Back to 'Bedquilt'
+260. E			Back to 'Complex junction'
+261. U			Back to 'Dusty rock room'
+262. E			Back to 'Dirty passage'
+263. U			Back to 'N/S passage'
+264. N			Back to 'Y2'
+265. PLOVER		Zapped back to 'Plover Room'
+266. OFF		
+267.			Wait here until you are zapped to 'N/E end'
+268. SW			To 'S/W end'
+269. GET ROD		Got 'Black rod'
+270. NE			Back to 'N/E end'
+271. DROP ROD		
+272. SW			
+273. BLAST

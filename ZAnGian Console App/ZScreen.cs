@@ -72,8 +72,6 @@ namespace ZAnGian
         private WindowId _currWindow = WindowId.LowerWindow;
         private Dictionary<WindowId, CursorPosition> CursorPositions;
         private ushort _upperWindowSize = 0;
-        private TermColor _fgColour = TermColor.ForegroundWhite;
-        private TermColor _bgColour = TermColor.BackgroundBlack;
 
         private HashSet<StreamId> _activeStreams = new HashSet<StreamId>();
         private Dictionary<StreamId, TextWriter> _stream2Writer = new Dictionary<StreamId, TextWriter>();
@@ -131,7 +129,7 @@ namespace ZAnGian
         {
             if (_activeStreams.Contains(StreamId.Memory))
             {
-                _logger.Info("printing to memory [" + msg + "]");
+                //_logger.Info("printing to memory [" + msg + "]");
                 _memorySB.Append(msg);
                 return;
             }
@@ -207,6 +205,9 @@ namespace ZAnGian
 
         public void SetColour(int fgColourCode, int bgColourCode)
         {
+            TermColor fgColour = TermColor.ForegroundWhite;
+            TermColor bgColour = TermColor.BackgroundBlack;
+
             switch (fgColourCode)
             {
                 case 0:
@@ -214,43 +215,43 @@ namespace ZAnGian
                     break;
                 case 1:
                     //default
-                    _fgColour = TermColor.ForegroundWhite;
+                    fgColour = TermColor.ForegroundWhite;
                     break;
                 case 2:
-                    _fgColour = TermColor.ForegroundBlack;
+                    fgColour = TermColor.ForegroundBlack;
                     break;
                 case 3:
-                    _fgColour = TermColor.ForegroundRed;
+                    fgColour = TermColor.ForegroundRed;
                     break;
                 case 4:
-                    _fgColour = TermColor.ForegroundGreen;
+                    fgColour = TermColor.ForegroundGreen;
                     break;
                 case 5:
-                    _fgColour = TermColor.ForegroundYellow;
+                    fgColour = TermColor.ForegroundYellow;
                     break;
                 case 6:
-                    _fgColour = TermColor.ForegroundBlue;
+                    fgColour = TermColor.ForegroundBlue;
                     break;
                 case 7:
-                    _fgColour = TermColor.ForegroundMagenta;
+                    fgColour = TermColor.ForegroundMagenta;
                     break;
                 case 8:
-                    _fgColour = TermColor.ForegroundCyan;
+                    fgColour = TermColor.ForegroundCyan;
                     break;
                 case 9:
-                    _fgColour = TermColor.ForegroundWhite;
+                    fgColour = TermColor.ForegroundWhite;
                     break;
                 case 10:
                     _logger.Warn($"Unsupported color code: {fgColourCode}");
-                    _fgColour = TermColor.ForegroundWhite;
+                    fgColour = TermColor.ForegroundWhite;
                     break;
                 case 11:
                     _logger.Warn($"Unsupported color code: {fgColourCode}");
-                    _fgColour = TermColor.ForegroundWhite;
+                    fgColour = TermColor.ForegroundWhite;
                     break;
                 case 12:
                     _logger.Warn($"Unsupported color code: {fgColourCode}");
-                    _fgColour = TermColor.ForegroundWhite;
+                    fgColour = TermColor.ForegroundWhite;
                     break;
                 default:
                     _logger.Warn($"Invalid color code: {fgColourCode}");
@@ -265,53 +266,76 @@ namespace ZAnGian
                     break;
                 case 1:
                     //default
-                    _bgColour = TermColor.BackgroundWhite;
+                    bgColour = TermColor.BackgroundWhite;
                     break;
                 case 2:
-                    _bgColour = TermColor.BackgroundBlack;
+                    bgColour = TermColor.BackgroundBlack;
                     break;
                 case 3:
-                    _bgColour = TermColor.BackgroundRed;
+                    bgColour = TermColor.BackgroundRed;
                     break;
                 case 4:
-                    _bgColour = TermColor.BackgroundGreen;
+                    bgColour = TermColor.BackgroundGreen;
                     break;
                 case 5:
-                    _bgColour = TermColor.BackgroundYellow;
+                    bgColour = TermColor.BackgroundYellow;
                     break;
                 case 6:
-                    _bgColour = TermColor.BackgroundBlue;
+                    bgColour = TermColor.BackgroundBlue;
                     break;
                 case 7:
-                    _bgColour = TermColor.BackgroundMagenta;
+                    bgColour = TermColor.BackgroundMagenta;
                     break;
                 case 8:
-                    _bgColour = TermColor.BackgroundCyan;
+                    bgColour = TermColor.BackgroundCyan;
                     break;
                 case 9:
-                    _bgColour = TermColor.BackgroundWhite;
+                    bgColour = TermColor.BackgroundWhite;
                     break;
                 case 10:
                     _logger.Warn($"Unsupported color code: {bgColourCode}");
-                    _bgColour = TermColor.BackgroundWhite;
+                    bgColour = TermColor.BackgroundWhite;
                     break;
                 case 11:
                     _logger.Warn($"Unsupported color code: {bgColourCode}");
-                    _bgColour = TermColor.BackgroundWhite;
+                    bgColour = TermColor.BackgroundWhite;
                     break;
                 case 12:
                     _logger.Warn($"Unsupported color code: {bgColourCode}");
-                    _bgColour = TermColor.BackgroundWhite;
+                    bgColour = TermColor.BackgroundWhite;
                     break;
                 default:
                     _logger.Warn($"Invalid color code: {bgColourCode}");
                     break;
             }
 
-            Console.Write($"{esc}[{(int)_fgColour}m");
-            Console.Write($"{esc}[{(int)_bgColour}m");
+            Console.Write($"{esc}[{(int)fgColour}m");
+            Console.Write($"{esc}[{(int)bgColour}m");
         }
 
+
+        public void SetTrueColour(ushort fgTrueColour, ushort bgTrueColour)
+        {
+            var fgRGB = TrueColour2RGB(fgTrueColour);
+            Console.Write($"{esc}[38;2;{fgRGB.r};{fgRGB.g};{fgRGB.b}m");
+
+            var bgRGB = TrueColour2RGB(bgTrueColour);
+            Console.Write($"{esc}[48;2;{bgRGB.r};{bgRGB.g};{bgRGB.b}m");
+        }
+
+        private static (byte r, byte g, byte b) TrueColour2RGB(ushort trueColour)
+        {
+            //bit 15 = 0
+            //bits 14 - 10 blue
+            //bits 9 - 5 green
+            //bits 4 - 0 red
+
+            byte b = (byte)((trueColour >> 10) & 0b0001_1111);
+            byte g = (byte)((trueColour >> 5) & 0b0001_1111);
+            byte r = (byte)((trueColour) & 0b0001_1111);
+
+            return (r, b, g);
+        }
         public void SetTextStyle(ushort newTextStyle)
         {
             if (newTextStyle == 0x00)
@@ -332,6 +356,12 @@ namespace ZAnGian
 
             if ((_currTextStyle & TextStyle.Reverse) == TextStyle.Reverse)
                 Console.Write($"{esc}[7m");
+        }
+
+        public ushort SetFont(ushort newFontId)
+        {
+            //in a TUI font is fixed
+            return 0;
         }
 
 
@@ -428,7 +458,15 @@ namespace ZAnGian
         
         public void EraseLine(ushort val)
         {
-            _logger.Warn("TODO: implement EraseLine");
+            if (val != 1)
+                return;
+
+            //erase from the current cursor position to the end of its line
+            for (int iCol = CursorPositions[_currWindow].Column - 1; iCol < NScreenColumns; iCol++)
+                Console.Write(" ");
+
+            //reset cursor pos to saved value
+            ApplyCursorPos();
         }
 
         public void EraseWindow(short windowId)

@@ -366,7 +366,7 @@ namespace ZAnGian
             _logger.Debug($"SET_COLOUR {operands[0]} {operands[1]}");
 
             ushort fgColour = operands[0].FullValue;
-            ushort bgColour = operands[0].FullValue;
+            ushort bgColour = operands[1].FullValue;
 
             _screen.SetColour(fgColour, bgColour);
         }
