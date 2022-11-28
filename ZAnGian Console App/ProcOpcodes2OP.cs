@@ -193,7 +193,6 @@ namespace ZAnGian
         {
             _logger.Debug($"INC_CHK {operands[0]} {operands[1]}");
 
-            Debug.Assert(operandTypes[0] == OperandType.Variable);
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
             MemWord cmpValue;

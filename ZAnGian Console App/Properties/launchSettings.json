@@ -2,7 +2,7 @@
   "profiles": {
     "ZAnGian Console App": {
       "commandName": "Project",
-      "commandLineArgs": "games\\Advent.z5",
+      "commandLineArgs": "games\\zork1.z3",
       "workingDirectory": "C:/Users/angian/git-workspace/ZAnGian"
     }
   }

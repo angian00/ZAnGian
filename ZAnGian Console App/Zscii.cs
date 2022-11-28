@@ -176,10 +176,14 @@ namespace ZAnGian
                     {
                         if (memory != null)
                         {
+                            ushort abbrTableAddr = memory.ReadWord(0x18).Value;
+
                             //lookup abbreviation
-                            MemWord abbrStringAddr = memory.ReadWord((ushort)(0x42 + 32 * abbrIndex + ch));
+                            HighMemoryAddress abbrStringAddr = memory.ReadWord((ushort)(abbrTableAddr + 2*(32 * abbrIndex + ch))).Value;
                             abbrStringAddr *= 2; //abbr table addresses are "word addresses"
-                            sb.Append(DecodeText(data, abbrStringAddr.Value, out _));
+                            //HighMemoryAddress abbrStringAddr = (HighMemoryAddress)(0x20 + 32 * abbrIndex + ch);
+                            //abbrStringAddr *= 2;
+                            sb.Append(DecodeText(data, abbrStringAddr, out _));
                         }
                         abbrIndex = -1;
                         continue;
