@@ -9,10 +9,6 @@ Supports version 3 files.
 ## TODO
 - try some storyfile with solutions
 - opcodes
-	- screen
-		- erase_line
-		- set_truecolour
-
 	- unicode
 		- (bugfixing header extension table)
 
@@ -20,7 +16,6 @@ Supports version 3 files.
 
 	- output streams
 		- output stream 4
-		- stack of stringbuilders for stream 3
 	- input stream 1
 	- sound effects
 

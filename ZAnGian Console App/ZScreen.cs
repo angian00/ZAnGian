@@ -78,8 +78,7 @@ namespace ZAnGian
         private TextWriter _gameTranscriptWriter = File.AppendText("game_transcript.txt");
         private TextWriter _commandTranscriptWriter = File.AppendText("command_transcript.txt");
 
-        private StringBuilder _memorySB;
-        private UInt32 _memoryTableAddr;
+        private Stack<MemoryStreamInfo> _memoryStreamStack = new();
 
 
         public ZScreen(ZMemory memory)
@@ -127,10 +126,10 @@ namespace ZAnGian
 
         public void Print(string msg)
         {
-            if (_activeStreams.Contains(StreamId.Memory))
+            if (_memoryStreamStack.Count > 0)
             {
                 //_logger.Info("printing to memory [" + msg + "]");
-                _memorySB.Append(msg);
+                _memoryStreamStack.Peek().SB.Append(msg);
                 return;
             }
 
@@ -430,28 +429,25 @@ namespace ZAnGian
         {
             if (enable)
             {
-                _activeStreams.Add(streamId);
-                switch (streamId)
+                if (streamId == StreamId.Memory)
+                    OpenMemoryStream(tableAddr);
+                else
                 {
-
-                    case StreamId.GameTranscript:
+                    _activeStreams.Add(streamId);
+                    if (streamId == StreamId.GameTranscript)
                         _memory.IsTranscriptOn = true;
-                        break;
-
-                    case StreamId.Memory:
-                        OpenMemoryStream(tableAddr);
-                        break;
-
-                    default:
-                        //do nothing special
-                        break;
                 }
             }
             else
             {
-                _activeStreams.Remove((StreamId)streamId);
-                if ((StreamId)streamId == StreamId.Memory)
+                if (streamId == StreamId.Memory)
                     CloseMemoryStream();
+                else
+                {
+                    _activeStreams.Remove(streamId);
+                    if (streamId == StreamId.GameTranscript)
+                        _memory.IsTranscriptOn = false;
+                }
             }
         }
 
@@ -531,14 +527,16 @@ namespace ZAnGian
 
         private void OpenMemoryStream(UInt32 tableAddr)
         {
-            _memorySB = new StringBuilder();
             Debug.Assert(tableAddr > 0);
-            _memoryTableAddr = tableAddr;
+
+            _memoryStreamStack.Push(new MemoryStreamInfo(tableAddr));
         }
 
         private void CloseMemoryStream()
         {
-            string utfText = _memorySB.ToString();
+            MemoryStreamInfo streamInfo = _memoryStreamStack.Pop();
+
+            string utfText = streamInfo.SB.ToString();
 
             //replace non-ASCII Unicode with '?'
             StringBuilder asciiSB = new StringBuilder();
@@ -551,8 +549,8 @@ namespace ZAnGian
             }
 
             byte[] zsciiText = Zscii.Ascii2Zscii(asciiSB.ToString());
-            _memory.WriteWord(_memoryTableAddr, new MemWord(zsciiText.Length));
-            _memory.CopyBytes(new MemWord(_memoryTableAddr+2), zsciiText);
+            _memory.WriteWord(streamInfo.TableAddr, new MemWord(zsciiText.Length));
+            _memory.CopyBytes(new MemWord(streamInfo.TableAddr + 2), zsciiText);
         }
     }
 
@@ -561,5 +559,18 @@ namespace ZAnGian
     {
         public int Line { get; set; } = 0;
         public int Column { get; set; } = 0;
+    }
+
+
+    public class MemoryStreamInfo
+    {
+        public readonly StringBuilder SB;
+        public readonly UInt32 TableAddr;
+
+        public MemoryStreamInfo(UInt32 tableAddr)
+        {
+            this.TableAddr = tableAddr;
+            this.SB = new StringBuilder();
+        }
     }
 }
