@@ -135,7 +135,8 @@ namespace ZAnGian
 
         public void SetLocalVariable(GameVariableId varId, MemWord value)
         {
-            _localVariables[varId - 1] = value;
+            if (varId < _localVariables.Count + 1) //CHECK
+                _localVariables[varId - 1] = value;
         }
 
         public void PushValue(MemWord value)

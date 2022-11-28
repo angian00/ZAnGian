@@ -383,6 +383,7 @@ namespace ZAnGian
                 case (char)0x00: return 0;
                 case '\t': return 9;
                 case ' ': return 11;
+                case '\r': return 13;
                 case '\n': return 13;
 
                 case >= (char)32 and <= (char)126: return ch;

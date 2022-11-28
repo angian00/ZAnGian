@@ -358,7 +358,7 @@ namespace ZAnGian
             _pc++;
 
 
-            ushort ch  = (ushort)_input.ReadChar();
+            ushort ch  = (ushort)Zscii.Ascii2Zscii(_input.ReadChar());
 
             WriteVariable(storeVar.Value, ch);
         }
