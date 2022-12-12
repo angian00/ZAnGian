@@ -76,6 +76,13 @@ namespace ZAnGian
 
         private void CallRoutine(MemValue packedAddr, MemValue[] args, MemByte storeVar)
         {
+            // as per opcode spec 
+            if (packedAddr.FullValue == 0x00)
+            {
+                WriteVariable(storeVar.Value, 0x00);
+                return;
+            }
+
             HighMemoryAddress routineAddr = UnpackAddress(packedAddr);
 
             RoutineData newRoutine = new RoutineData();
@@ -113,7 +120,6 @@ namespace ZAnGian
                 newRoutine.SetLocalVariable((byte)(i + 1), new MemWord(args[i].FullValue));
 
             _stack.PushRoutine(newRoutine);
-            //TODO manage case (routineAddr == 0x00) as per opcode spec 
         }
 
 
