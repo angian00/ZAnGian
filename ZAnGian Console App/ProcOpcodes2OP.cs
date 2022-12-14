@@ -78,18 +78,18 @@ namespace ZAnGian
 
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
-            MemWord cmpValue;
+            //dereference manually
+            short cmpValue;
             if (operandTypes[1] == OperandType.Variable)
-                cmpValue = ReadVariable(((MemByte)operands[1]).Value);
+                cmpValue = ReadVariable((GameVariableId)operands[1].FullValue).SignedValue;
             else
-                cmpValue = new MemWord(operands[1].FullValue);
-
+                cmpValue = operands[1].SignedValue;
 
             MemWord varValue = ReadVariable(varId);
             varValue--;
             WriteVariable(varId, varValue);
 
-            Branch(varValue.SignedValue < cmpValue.SignedValue);
+            Branch(varValue.SignedValue < cmpValue);
         }
 
 
@@ -194,18 +194,19 @@ namespace ZAnGian
 
             GameVariableId varId = ((MemByte)operands[0]).Value;
 
-            MemWord cmpValue;
+            //dereference manually
+            short cmpValue;
             if (operandTypes[1] == OperandType.Variable)
-                cmpValue = ReadVariable(((MemByte)operands[1]).Value);
+                cmpValue = ReadVariable((GameVariableId)operands[1].FullValue).SignedValue;
             else
-                cmpValue = new MemWord(operands[1].FullValue);
+                cmpValue = operands[1].SignedValue;
 
 
             MemWord varValue = ReadVariable(varId);
             varValue++;
             WriteVariable(varId, varValue);
 
-            Branch(varValue.SignedValue > cmpValue.SignedValue);
+            Branch(varValue.SignedValue > cmpValue);
         }
 
 

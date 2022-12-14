@@ -181,6 +181,7 @@ namespace ZAnGian
                             //lookup abbreviation
                             HighMemoryAddress abbrStringAddr = memory.ReadWord((ushort)(abbrTableAddr + 2*(32 * abbrIndex + ch))).Value;
                             abbrStringAddr *= 2; //abbr table addresses are "word addresses"
+
                             //HighMemoryAddress abbrStringAddr = (HighMemoryAddress)(0x20 + 32 * abbrIndex + ch);
                             //abbrStringAddr *= 2;
                             sb.Append(DecodeText(data, abbrStringAddr, out _));
