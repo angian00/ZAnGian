@@ -334,7 +334,7 @@ namespace ZAnGian
             }
             else
             {
-                value = (ushort)_rndGen.Next(randomRange);
+                value = (ushort)(1 + _rndGen.Next(randomRange-1));
             }
 
             WriteVariable(storeVar, value);
