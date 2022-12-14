@@ -164,7 +164,7 @@ namespace ZAnGian
 
         private void OpcodeLoad(OperandType[] operandTypes, MemValue[] operands)
         {
-            _logger.Debug($"INC {operands[0]}");
+            _logger.Debug($"LOAD {operands[0]}");
 
             //Debug.Assert(operandTypes[0] == OperandType.Variable);
             GameVariableId sourceVarId = ((MemByte)operands[0]).Value;
